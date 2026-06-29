@@ -1,0 +1,31 @@
+{
+  "name": "erp-system",
+  "version": "1.0.0",
+  "description": "Enterprise Resource Planning System",
+  "scripts": {
+    "start:backend": "cd backend && npm run start:dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "test:e2e:install": "playwright install chromium",
+    "init:db": "node -e \"require('child_process').execSync(process.platform==='win32'?'powershell -File scripts/init-db.ps1':'bash scripts/init-db.sh',{stdio:'inherit'})\"",
+    "verify:migrations": "node -e \"require('child_process').execSync(process.platform==='win32'?'powershell -File scripts/verify-migrations.ps1':'bash scripts/verify-migrations.sh',{stdio:'inherit'})\"",
+    "test:perf": "node tests/perf/load-smoke.mjs",
+    "test:perf:full": "node tests/perf/load-smoke.mjs --full",
+    "test:perf:k6": "k6 run tests/perf/k6-ci.js",
+    "test:perf:k6:load": "k6 run tests/perf/k6-load.js",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "k8s:apply": "kubectl apply -k k8s/",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "docs:pdf": "node scripts/export-manual-pdf.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "marked": "^18.0.5"
+  }
+}
