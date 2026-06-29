@@ -17,9 +17,7 @@
 
 ## 界面预览
 
-### 登录
 
-<img src="docs/images/erp-login.png" alt="登录页" width="720">
 
 ### 数据看板
 
