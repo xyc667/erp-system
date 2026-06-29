@@ -15,6 +15,32 @@
 | 报表 | 运营看板、BI 大屏、智能补货分析 |
 | 系统 | 用户、角色、权限、租户、审计、文件 |
 
+## 界面预览
+
+### 登录
+
+<img src="docs/images/erp-login.png" alt="登录页" width="720">
+
+### 数据看板
+
+<img src="docs/images/erp-dashboard.png" alt="数据看板" width="720">
+
+### BI 大屏
+
+<img src="docs/images/erp-bi-screen.png" alt="BI 大屏" width="720">
+
+### 采购管理
+
+<img src="docs/images/erp-procurement.png" alt="采购管理" width="720">
+
+### 智能分析
+
+<img src="docs/images/erp-intelligence.png" alt="智能分析中心" width="720">
+
+### 角色与权限
+
+<img src="docs/images/erp-role-management.png" alt="角色管理" width="720">
+
 ## 环境要求
 
 - Node.js >= 18
@@ -124,4 +150,8 @@ erp/
 ## 权限模型
 
 - **后端**：`@RequirePermissions` + `PermissionsGuard`
-- **前端**：侧栏菜单过滤 + 
+- **前端**：侧栏菜单过滤 + 路由级 `PermissionRoute`（403 页）
+
+## 许可证
+
+MIT
