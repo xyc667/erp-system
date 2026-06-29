@@ -152,6 +152,8 @@ erp/
 - **后端**：`@RequirePermissions` + `PermissionsGuard`
 - **前端**：侧栏菜单过滤 + 路由级 `PermissionRoute`（403 页）
 
+## 声明
+  禁止商业用途！！！
 ## 许可证
 
 MIT
