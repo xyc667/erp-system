@@ -17,6 +17,10 @@ export const ROUTE_I18N_KEYS: Record<string, string> = {
   '/sales/order': 'routes.salesOrder',
   '/sales/delivery': 'routes.salesDelivery',
   '/sales/service': 'routes.salesService',
+  '/sales/leads/pool': 'routes.salesLeadPool',
+  '/sales/leads/mine': 'routes.salesLeadMine',
+  '/sales/leads/stats': 'routes.salesLeadStats',
+  '/sales/leads/reports': 'routes.salesLeadReports',
   '/production/bom': 'routes.productionBom',
   '/production/plan': 'routes.productionPlan',
   '/production/work-order': 'routes.productionWorkOrder',
@@ -45,6 +49,7 @@ export const ROUTE_I18N_KEYS: Record<string, string> = {
   '/system/audit': 'routes.systemAudit',
   '/system/tenant': 'routes.systemTenant',
   '/system/files': 'routes.systemFiles',
+  '/system/leads/import': 'routes.systemLeadImport',
 }
 
 export const MODULE_I18N_KEYS: Record<string, string> = {

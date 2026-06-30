@@ -50,6 +50,11 @@ const SalaryManagement = lazy(() => import('./pages/HR/SalaryManagement'))
 const PerformanceManagement = lazy(() => import('./pages/HR/PerformanceManagement'))
 const ProjectManagement = lazy(() => import('./pages/Project/ProjectManagement'))
 const ReportCenter = lazy(() => import('./pages/Report/ReportCenter'))
+const LeadPool = lazy(() => import('./pages/Sales/LeadPool'))
+const MyLeads = lazy(() => import('./pages/Sales/MyLeads'))
+const LeadStats = lazy(() => import('./pages/Sales/LeadStats'))
+const LeadReports = lazy(() => import('./pages/Sales/LeadReports'))
+const LeadImport = lazy(() => import('./pages/System/LeadImport'))
 const IntelligenceCenter = lazy(() => import('./pages/Report/IntelligenceCenter'))
 
 function PageLoader() {
@@ -115,6 +120,11 @@ export default function App() {
         <Route path="/sales/order" element={withLayout(<SalesOrderManagement />)} />
         <Route path="/sales/delivery" element={withLayout(<SalesOrderManagement />)} />
         <Route path="/sales/service" element={withLayout(<ServiceTicketManagement />)} />
+        <Route path="/sales/leads/pool" element={withLayout(<LeadPool />)} />
+        <Route path="/sales/leads/mine" element={withLayout(<MyLeads />)} />
+        <Route path="/sales/leads/stats" element={withLayout(<LeadStats />)} />
+        <Route path="/sales/leads/reports" element={withLayout(<LeadReports />)} />
+        <Route path="/system/leads/import" element={withLayout(<LeadImport />)} />
         <Route path="/production/bom" element={withLayout(<BomManagement />)} />
         <Route path="/production/plan" element={withLayout(<ProductionPlanManagement />)} />
         <Route path="/production/work-order" element={withLayout(<WorkOrderManagement />)} />

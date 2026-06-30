@@ -12,7 +12,8 @@
     "migrate:dev": "prisma migrate dev",
     "migrate:prod": "prisma migrate deploy",
     "seed": "prisma db seed",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "import:poi": "node ../scripts/import-shenyang-poi.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

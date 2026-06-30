@@ -48,6 +48,7 @@ import { TraceModule } from './modules/trace/trace.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
+import { LeadsModule } from './modules/leads/leads.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -116,6 +117,7 @@ import { PrismaModule } from './prisma/prisma.module';
     StorageModule,
     IntelligenceModule,
     BlockchainModule,
+    LeadsModule,
   ],
   providers: [
     {

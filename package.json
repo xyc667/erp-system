@@ -22,7 +22,8 @@
     "docker:down": "docker compose -f docker/docker-compose.yml down",
     "k8s:apply": "kubectl apply -k k8s/",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "docs:pdf": "node scripts/export-manual-pdf.mjs"
+    "docs:pdf": "node scripts/export-manual-pdf.mjs",
+    "docs:screenshots:leads": "node scripts/capture-leads-manual-screenshots.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

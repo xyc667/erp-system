@@ -18,6 +18,10 @@ export const ROUTE_PERMISSIONS: Record<string, string[] | null> = {
   '/sales/order': ['sales:order'],
   '/sales/delivery': ['sales:delivery', 'sales:order'],
   '/sales/service': ['sales:service'],
+  '/sales/leads/pool': ['lead:view'],
+  '/sales/leads/mine': ['lead:view'],
+  '/sales/leads/stats': ['lead:view', 'lead:manage'],
+  '/sales/leads/reports': ['lead:review', 'lead:manage'],
   '/production/bom': ['production:bom'],
   '/production/plan': ['production:plan'],
   '/production/work-order': ['production:workorder'],
@@ -46,6 +50,7 @@ export const ROUTE_PERMISSIONS: Record<string, string[] | null> = {
   '/system/audit': ['system:audit'],
   '/system/tenant': ['system:tenant'],
   '/system/files': ['file:manage', 'system:config'],
+  '/system/leads/import': ['lead:import'],
 }
 
 const sortedPaths = Object.keys(ROUTE_PERMISSIONS).sort((a, b) => b.length - a.length)

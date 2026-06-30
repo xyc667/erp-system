@@ -21,7 +21,7 @@ test.describe('Login page', () => {
     await page.getByPlaceholder('用户名').fill('invalid')
     await page.getByPlaceholder('密码').fill('wrong')
     await page.getByTestId('login-submit').click()
-    await expect(page.getByText('用户名或密码错误')).toBeVisible()
+    await expect(page.getByText('用户名或密码错误').first()).toBeVisible()
   })
 })
 
@@ -31,7 +31,7 @@ test.describe('Authentication', () => {
 
     await page.goto('/login')
     await page.getByPlaceholder('用户名').fill('admin')
-    await page.getByPlaceholder('密码').fill(process.env.E2E_ADMIN_PASSWORD || 'change-me-admin')
+    await page.getByPlaceholder('密码').fill(process.env.E2E_ADMIN_PASSWORD || 'admin123')
     await page.getByTestId('login-submit').click()
     await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15_000 })
   })
@@ -43,7 +43,7 @@ test.describe('Navigation', () => {
 
     await page.goto('/login')
     await page.getByPlaceholder('用户名').fill('admin')
-    await page.getByPlaceholder('密码').fill(process.env.E2E_ADMIN_PASSWORD || 'change-me-admin')
+    await page.getByPlaceholder('密码').fill(process.env.E2E_ADMIN_PASSWORD || 'admin123')
     await page.getByTestId('login-submit').click()
     await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText('库存管理')).toBeVisible()

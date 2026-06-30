@@ -7,7 +7,7 @@
 | 模块 | 能力 |
 |------|------|
 | 采购 | 供应商、采购申请、采购订单、收货验收 |
-| 销售 | 客户、报价、销售订单、发货、售后 |
+| 销售 | 客户、报价、销售订单、发货、售后、公海线索、联系上报与审核 |
 | 库存 | 台账、出入库、调拨、盘点、批次追溯 |
 | 生产 | BOM、计划、工单、质检 |
 | 财务 | 总账、应收应付、固定资产、预算、报表 |
@@ -38,6 +38,14 @@
 ### 角色与权限
 
 <img src="docs/images/erp-role-management.png" alt="角色管理" width="720">
+
+### 公海线索与联系上报
+
+<img src="docs/images/erp-leads-pool.png" alt="公海线索" width="720">
+
+<img src="docs/images/erp-leads-contact-report.png" alt="联系上报" width="720">
+
+<img src="docs/images/erp-leads-reports-pending.png" alt="上报审核" width="720">
 
 ## 环境要求
 

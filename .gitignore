@@ -17,3 +17,10 @@ docs/USER_MANUAL.pdf.tmp
 .playwright/
 test-results/
 playwright-report/
+
+# 公海 POI 导入产物（勿提交真实线索数据）
+scripts/upload-result.json
+scripts/test-recording.wav
+scripts/*.csv
+scripts/poi-export/
+data/leads/

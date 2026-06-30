@@ -30,6 +30,15 @@ const permissions = [
   { name: '销售订单', code: 'sales:order', module: 'sales' },
   { name: '发货管理', code: 'sales:delivery', module: 'sales' },
   { name: '售后服务', code: 'sales:service', module: 'sales' },
+  { name: '公海查看', code: 'lead:view', module: 'sales' },
+  { name: '公海领取', code: 'lead:claim', module: 'sales' },
+  { name: '线索跟进', code: 'lead:follow', module: 'sales' },
+  { name: '线索转化', code: 'lead:convert', module: 'sales' },
+  { name: '线索无效', code: 'lead:invalidate', module: 'sales' },
+  { name: '线索导入', code: 'lead:import', module: 'sales' },
+  { name: '公海管理', code: 'lead:manage', module: 'sales' },
+  { name: '联系上报', code: 'lead:report', module: 'sales' },
+  { name: '上报审核', code: 'lead:review', module: 'sales' },
   { name: 'BOM管理', code: 'production:bom', module: 'production' },
   { name: '生产计划', code: 'production:plan', module: 'production' },
   { name: '工单管理', code: 'production:workorder', module: 'production' },
@@ -99,6 +108,8 @@ const roleTemplates: Array<{
     description: '客户与销售全盘、应收 oversight',
     permissions: [
       'sales:customer', 'sales:quote', 'sales:order', 'sales:delivery', 'sales:service',
+      'lead:view', 'lead:claim', 'lead:follow', 'lead:convert', 'lead:invalidate', 'lead:manage',
+      'lead:report', 'lead:review',
       'finance:ar', 'report:center',
     ],
     demoUser: { username: 'sales_director', name: '刘销售', email: 'sales.director@erp.com' },
@@ -108,6 +119,7 @@ const roleTemplates: Array<{
     description: '报价、订单、发货与售后',
     permissions: [
       'sales:customer', 'sales:quote', 'sales:order', 'sales:delivery', 'sales:service',
+      'lead:view', 'lead:claim', 'lead:follow', 'lead:convert', 'lead:invalidate', 'lead:report',
     ],
     demoUser: { username: 'sales_clerk', name: '陈销售', email: 'sales.clerk@erp.com' },
   },
@@ -717,8 +729,9 @@ async function main() {
     });
   }
 
+  // 演示线索已改为真实 POI 导入：npm run import:poi（见 scripts/import-shenyang-poi.mjs）
+
   console.log('Seed data created successfully!');
-  console.log('BI demo: 12 sales orders, 8 purchase orders, inventory ~2580');
   console.log('Roles seeded:', roleTemplates.map((r) => r.name).join(', '));
   const demoUsers = roleTemplates
     .filter((r) => r.demoUser && r.demoUser.username !== 'admin')

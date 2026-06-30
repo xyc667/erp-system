@@ -35,7 +35,7 @@
 | 模块 | 主要能力 |
 |------|----------|
 | 采购 | 供应商、采购申请、采购订单、收货验收 |
-| 销售 | 客户、报价、销售订单、发货、售后工单 |
+| 销售 | 客户、报价、销售订单、发货、售后工单、公海线索、联系上报与审核 |
 | 库存 | 台账、出入库、调拨、盘点、预警、批次/序列号追溯 |
 | 生产 | BOM、生产计划、工单、质检 |
 | 财务 | 总账、应收/应付、固定资产、预算、财务报表 |
@@ -54,7 +54,7 @@
 
 | 环境 | 前端地址 | 后端 API |
 |------|----------|----------|
-| 开发模式 | http://localhost:5173 | http://localhost:3000/api（Vite 代理） |
+| 开发模式 | http://localhost:5173 | http://localhost:3001/api（或见 `backend/.env` 中 `PORT`） |
 | Docker Compose | http://localhost:8080 | http://localhost:3000/api |
 
 ### 2.2 登录步骤
@@ -83,8 +83,8 @@
 | `finance_clerk` | 财务专员 | 日常记账 |
 | `procurement_director` | 采购总监 | 采购全流程 |
 | `procurement_clerk` | 采购专员 | 采购执行 |
-| `sales_director` | 销售总监 | 销售全盘 |
-| `sales_clerk` | 销售专员 | 报价/订单/发货 |
+| `sales_director` | 销售总监 | 销售全盘、上报审核 |
+| `sales_clerk` | 销售专员 | 报价/订单/发货、公海领取、联系上报 |
 | `production_manager` | 生产经理 | 生产+库存协调 |
 | `production_clerk` | 生产专员 | 工单执行 |
 | `warehouse_admin` | 仓库管理员 | 库存与追溯 |
@@ -155,8 +155,8 @@
 | 财务专员 | 5 | 会计 |
 | 采购总监 | 7 | 采购经理 |
 | 采购专员 | 4 | 采购员 |
-| 销售总监 | 7 | 销售经理 |
-| 销售专员 | 5 | 销售员 |
+| 销售总监 | 9+ | 销售经理（含线索审核） |
+| 销售专员 | 8+ | 销售员（含公海与上报） |
 | 生产经理 | 8 | 车间主任 |
 | 生产专员 | 4 | 计划员/操作工 |
 | 仓库管理员 | 5 | 仓管 |
@@ -290,8 +290,16 @@ node tests/permissions-audit.mjs
 
 ### 7.1 业务流程
 
+**订单主线：**
+
 ```
 销售报价 → 审批 → 转销售订单 → 审批 → 发货（扣库存）→ 应收生成 → 售后（可选）
+```
+
+**线索主线（沈阳公海 POI）：**
+
+```
+公海浏览/筛选 → 领取至我的线索 → 联系上报（可选录音）→ 主管审核 → 转客户 / 继续跟进
 ```
 
 ### 7.2 客户管理
@@ -320,6 +328,248 @@ node tests/permissions-audit.mjs
 
 - 创建售后工单，关联客户/销售订单。
 - 跟踪处理状态（待处理、处理中、已完成等）。
+
+### 7.7 公海线索
+
+路径：**销售管理 → 公海线索**
+
+公海存放尚未分配的销售线索（本系统已导入沈阳市真实 POI 商户数据，含店名、电话、地址、区县、行业分类等）。
+
+![公海线索](images/erp-leads-pool.png)
+
+**页面说明：**
+
+| 元素 | 说明 |
+|------|------|
+| 已持有 X / 50 条 | 当前用户私海持有量上限为 **50** 条 |
+| 区县 / 分类 / 电话 | 按行政区、高德一级行业、是否有电话筛选 |
+| 店名/电话/地址 | 关键词模糊搜索 |
+| 领取 | 将单条线索划入「我的线索」，进入 **15 天保护期** |
+| 批量领取 | 勾选多行后一次性领取（受上限约束） |
+
+**操作步骤：**
+
+1. 使用 `sales_clerk`（销售专员）或具备 `lead:claim` 权限的账号登录。
+2. 按需设置筛选项，点击 **查询**。
+3. 点击行内 **领取**，或勾选后 **批量领取**。
+4. 领取成功后，线索从公海列表消失，出现在 **我的线索**。
+
+> 保护期内的线索仅持有人可跟进；超期未有效跟进将自动回收至公海（系统定时任务）。
+
+### 7.8 我的线索与联系上报
+
+路径：**销售管理 → 我的线索**
+
+![我的线索](images/erp-leads-mine.png)
+
+| 列 | 说明 |
+|----|------|
+| 保护期 | 剩余天数，到期未跟进将回收到公海 |
+| 跟进次数 | 含联系上报与手工跟进记录 |
+| 操作 | **联系上报**、跟进、转为客户、释放、标记无效 |
+
+#### 联系上报（结构化跟进）
+
+销售专员完成一次电话/拜访后，应使用 **联系上报** 提交结构化记录（全部进入待审队列，由主管审核）。
+
+![联系上报表单](images/erp-leads-contact-report.png)
+
+**操作步骤：**
+
+1. 在「我的线索」行内点击 **联系上报**，右侧打开表单。
+2. 填写必填项：
+   - **跟进方式**：电话 / 拜访 / 微信 / 其他
+   - **联系结果**（见下表）
+   - **沟通摘要**：客户反馈、意向、下次计划等
+3. **电话录音（可选）**：点击 **上传录音**，支持 mp3/m4a/wav，单文件 ≤ 10MB，存储于 MinIO。
+4. **质量标记**（可选）：有效 / 空号 / 已关店等。
+5. 点击 **提交上报**。提交后该条记录状态为 **待审核**，跟进次数 +1。
+
+**联系结果枚举：**
+
+| 结果 | 说明 | 附加要求 |
+|------|------|----------|
+| 已接通 | 电话接通并完成沟通 | — |
+| 未接/挂断 | 无人接听或挂断 | — |
+| 有意向 | 客户表达合作意向 | — |
+| 明确拒绝 | 客户明确不需要 | — |
+| 约下次联系 | 约定下次回访时间 | 必须填写 **下次联系时间** |
+| 空号/错号 | 号码无效 | — |
+| 已关店 | 商户已停业 | — |
+
+**权限：** `lead:report`（销售专员默认具备）。重新登录后权限才会刷新。
+
+### 7.9 上报审核与联系统计
+
+路径：**销售管理 → 上报审核**（需 `lead:review` 或 `lead:manage`）
+
+销售总监、系统管理员可在此审核全员上报，查看录音与统计数据。销售专员访问该页将显示 **403**。
+
+#### 待审核 / 全部上报
+
+![上报审核](images/erp-leads-reports-pending.png)
+
+| 列 | 说明 |
+|----|------|
+| 上报人 | 提交上报的销售姓名 |
+| 联系结果 | 结构化结果标签 |
+| 录音 | 有附件时显示 **播放**（打开 MinIO 预签名下载链接） |
+| 审核状态 | 待审核 / 已通过 / 已驳回 |
+| 操作 | **通过**、**驳回**（仅待审核行） |
+
+**审核步骤：**
+
+1. 打开 **待审核** 标签页，查看待处理数量。
+2. 可选点击 **播放** 收听录音。
+3. 点击 **通过** 或 **驳回**，在弹窗中填写 **审核备注**（可选），确认。
+4. 审核完成后记录移至 **全部上报** 列表，待审核数量减少。
+
+#### 联系统计
+
+![联系统计](images/erp-leads-reports-stats.png)
+
+| 指标 | 含义 |
+|------|------|
+| 上报总数 | 全部联系上报条数 |
+| 待审核 | 尚未审核条数 |
+| 接通率 | 「已接通」占比 |
+| 有意向率 | 「有意向」占比 |
+| 按结果分布 | 各联系结果数量 |
+| 按销售统计 | 各上报人提交量排名 |
+
+### 7.10 公海数据导入（管理员）
+
+路径：**系统管理 → 线索导入**（`/system/leads/import`，需 `lead:import` 权限，`admin` 默认具备）
+
+公海线索有三种导入方式，按数据量选择：
+
+| 场景 | 推荐方式 |
+|------|----------|
+| 自有 Excel/CRM 导出，几百～几千条 | **页面上传 CSV** 或粘贴 JSON |
+| 外部系统定时同步 | **API** `POST /api/leads/import` |
+| 沈阳全城 POI、尽量补全电话 | **运维脚本** `import-shenyang-poi.mjs` + 高德 Key |
+
+导入完成后，在 **销售管理 → 公海线索** 查看数量与筛选项是否正常。
+
+#### 方式 A：页面上传 CSV
+
+1. 使用 `admin` 登录 → **系统管理 → 线索导入**。
+2. 点击 **上传 CSV**，选择 UTF-8 编码的 CSV 文件。
+3. 导入结束后页面显示 **新增 / 跳过（重复）/ 失败** 数量。
+
+**CSV 表头（第一行）：**
+
+```text
+name,phone,address,district,category,source,source_id
+```
+
+**字段说明：**
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `name` | 是 | 店名/商户名 |
+| `phone` | 否 | 主联系电话 |
+| `address` | 否 | 详细地址 |
+| `district` | 否 | 区县，建议与公海筛选项一致（沈阳 13 区县，见下表） |
+| `category` | 否 | 行业大类，建议与公海「分类」筛选项一致（见下表） |
+| `source` | 否 | 数据来源，默认 `manual`；有外部 ID 时填 `amap`、`tencent` 等 |
+| `source_id` | 否 | 外部 POI 编号，与 `source` 配合用于去重 |
+
+**可选扩展列**（表头可用下划线）：`phone_backup`（备用电话）、`lng`、`lat`（经纬度）。
+
+**CSV 示例：**
+
+```csv
+name,phone,address,district,category,source,source_id
+云之印图文广告,15840454431,黄河北大街25号,皇姑区,生活服务,manual,
+恩林房翻新(浑南店),13889173430,浑南区某路88号,浑南区,生活服务,amap,B0FFXXXX
+```
+
+**沈阳 13 区县（`district` 建议值）：**  
+和平区、沈河区、大东区、皇姑区、铁西区、苏家屯区、浑南区、沈北新区、于洪区、辽中区、新民市、康平县、法库县。
+
+**行业大类（`category` 建议值，与公海筛选一致）：**  
+餐饮服务、购物服务、生活服务、体育休闲服务、医疗保健服务、住宿服务、汽车服务、汽车销售、汽车维修、摩托车服务、科教文化服务、金融保险服务、公司企业、商务住宅、风景名胜、公共设施、其他。
+
+#### 方式 B：页面粘贴 JSON
+
+同一路径下方 **JSON 文本框**，格式示例：
+
+```json
+[
+  {
+    "name": "示例餐饮店",
+    "phone": "024-12345678",
+    "address": "和平区某某路1号",
+    "district": "和平区",
+    "category": "餐饮",
+    "source": "manual"
+  }
+]
+```
+
+点击 **导入 JSON** 提交。字段与 CSV 相同，亦支持 `phoneBackup`、`lng`、`lat`、`remark` 等。
+
+#### 方式 C：API 批量导入
+
+适合脚本或第三方系统对接：
+
+```http
+POST /api/leads/import
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "name": "示例店",
+      "phone": "13800001111",
+      "district": "铁西区",
+      "category": "购物服务"
+    }
+  ]
+}
+```
+
+响应示例：`{ "created": 100, "skipped": 5, "failed": 0, "errors": [] }`  
+`skipped` 表示与库内已有记录重复而未写入。
+
+#### 方式 D：沈阳全量 POI 脚本（大批量）
+
+已在本地导入约 2.7 万条沈阳真实 POI 时，使用的是项目根目录运维脚本（直连数据库，不经过页面）：
+
+```powershell
+cd backend
+node ../scripts/import-shenyang-poi.mjs
+
+# 清空现有公海后重新导入
+node ../scripts/import-shenyang-poi.mjs --replace
+
+# 仅高德 / 仅 OpenStreetMap
+node ../scripts/import-shenyang-poi.mjs --amap-only
+node ../scripts/import-shenyang-poi.mjs --osm-only
+```
+
+**前置条件：**
+
+- PostgreSQL 可连接，已执行 migrate 与 seed。
+- `backend/.env` 中配置 `AMAP_API_KEY`（[高德开放平台](https://lbs.amap.com/) 申请 **Web 服务** Key）。
+- 可选：导入后执行 `node scripts/recategorize-leads.mjs` 统一行业分类。
+
+#### 去重规则
+
+系统写入前自动去重，重复记录会计入 **跳过**，不会覆盖已有数据：
+
+| 条件 | 去重键 |
+|------|--------|
+| 填写了 `source` + `source_id`，且 `source` 不是 `manual` | 店名 + 来源 + 外部 ID |
+| 手工导入或未填外部 ID | 店名 + 电话 + 区县 |
+
+#### 导入后验证
+
+1. **销售管理 → 公海线索**：列表有数据，区县/分类筛选可用。
+2. **销售管理 → 线索统计**（如有权限）：查看公海/已领取数量分布。
+3. 用 `sales_clerk` 试领 1 条，确认 **我的线索** 与 **联系上报** 流程正常。
 
 ---
 
@@ -587,6 +837,35 @@ REST 导出接口，供外部系统拉取主数据/订单/库存（需 `integrat
 - 未配置 RPC 时仅本地哈希链，属正常。
 - 配置 `BLOCKCHAIN_RPC_URL` 与 `BLOCKCHAIN_PRIVATE_KEY` 后重试。
 
+### Q9：联系上报按钮灰色或提交失败？
+
+- 确认当前账号持有该线索（**我的线索** 中操作，非公海）。
+- 销售专员需具备 `lead:report` 权限；修改权限后 **重新登录**。
+- 选择「约下次联系」时必须填写 **下次联系时间**。
+
+### Q10：上报审核页无数据或显示 403？
+
+- **403**：当前角色无 `lead:review`；销售专员只能上报，不能审核。
+- **无数据**：待审核为空表示已全部处理；可切换 **全部上报** 查看历史。
+- 页面首次加载若 token 未就绪，**刷新** 即可。
+
+### Q11：录音上传或播放失败？
+
+- 确认 MinIO 已启动（Docker：`docker compose` 中 `minio` 服务）。
+- 检查 `backend/.env` 中 `MINIO_ENDPOINT`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY`。
+- 仅支持音频格式，单文件 ≤ 10MB。
+
+### Q12：公海领取提示已达上限？
+
+- 单人最多同时持有 **50** 条线索；请先 **释放** 或 **转为客户** 后再领取。
+
+### Q13：如何向公海批量导入线索？
+
+- 小批量：管理员登录 → **系统管理 → 线索导入**，上传 CSV 或粘贴 JSON（详见 [7.10 公海数据导入](#710-公海数据导入管理员)）。
+- 大批量（沈阳 POI）：配置 `AMAP_API_KEY` 后运行 `scripts/import-shenyang-poi.mjs`。
+- 接口对接：调用 `POST /api/leads/import`。
+- 重复数据会自动 **跳过**，不会覆盖已有记录。
+
 ---
 
 ## 18. 附录
@@ -598,7 +877,7 @@ REST 导出接口，供外部系统拉取主数据/订单/库存（需 `integrat
 | 系统 | `user:manage` `user:view` `user:create` `user:update` `user:delete` `role:manage` `permission:manage` `system:config` `system:audit` `system:tenant` `file:manage` |
 | 财务 | `finance:gl` `finance:ar` `finance:ap` `finance:asset` `finance:report` `finance:budget` |
 | 采购 | `procurement:vendor` `procurement:request` `procurement:order` `procurement:receive` |
-| 销售 | `sales:customer` `sales:quote` `sales:order` `sales:delivery` `sales:service` |
+| 销售 | `sales:customer` `sales:quote` `sales:order` `sales:delivery` `sales:service` `lead:view` `lead:claim` `lead:follow` `lead:convert` `lead:invalidate` `lead:report` `lead:review` `lead:import` `lead:manage` |
 | 生产 | `production:bom` `production:plan` `production:workorder` `production:quality` |
 | 库存 | `inventory:stock` `inventory:inout` `inventory:alert` `inventory:trace` |
 | 人力 | `hr:employee` `hr:attendance` `hr:salary` `hr:performance` |
@@ -610,7 +889,7 @@ REST 导出接口，供外部系统拉取主数据/订单/库存（需 `integrat
 |------|------|------|------|
 | 1 | 系统管理员 | 2h | 用户/角色/权限、系统配置、审计 |
 | 2 | 采购 + 仓管 | 2h | 申请→订单→收货→库存 |
-| 3 | 销售 | 2h | 报价→订单→发货→应收→售后 |
+| 3 | 销售 | 2.5h | 公海领取→联系上报→审核；报价→订单→发货→售后 |
 | 4 | 财务 | 2h | 总账、应收应付、资产、报表 |
 | 5 | 生产 + 计划 | 1.5h | BOM→计划→工单→质检 |
 
@@ -618,8 +897,9 @@ REST 导出接口，供外部系统拉取主数据/订单/库存（需 `integrat
 
 - [部署指南](DEPLOYMENT.md)
 - [简明用户指南](USER_GUIDE.md)
+- [公海与线索 PRD](LEADS_POOL_PRD.md)
 - [架构说明](../TECH_ARCH.md)
 
 ---
 
-*文档随系统功能更新；截图取自当前部署环境，数据为演示数据。*
+*文档随系统功能更新；截图取自当前部署环境（含沈阳公海 POI 真实数据）。重新生成截图：`node scripts/capture-leads-manual-screenshots.mjs`；导出 PDF：`npm run docs:pdf`。*

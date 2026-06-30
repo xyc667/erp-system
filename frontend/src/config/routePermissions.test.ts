@@ -32,4 +32,12 @@ describe('routePermissions', () => {
   it('allows system user with view permission', () => {
     expect(canAccessRoute('/system/user', hasPermission('user:view'))).toBe(true)
   })
+
+  it('allows lead report review with lead:review', () => {
+    expect(canAccessRoute('/sales/leads/reports', hasPermission('lead:review'))).toBe(true)
+  })
+
+  it('denies lead report review without permission', () => {
+    expect(canAccessRoute('/sales/leads/reports', hasPermission('lead:report'))).toBe(false)
+  })
 })

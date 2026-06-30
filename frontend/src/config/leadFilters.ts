@@ -1,0 +1,41 @@
+/** 与 POI 导入脚本 `scripts/import-shenyang-poi.mjs` 保持一致（高德一级大类） */
+
+export const LEAD_DISTRICTS = [
+  '和平区',
+  '沈河区',
+  '大东区',
+  '皇姑区',
+  '铁西区',
+  '苏家屯区',
+  '浑南区',
+  '沈北新区',
+  '于洪区',
+  '辽中区',
+  '新民市',
+  '康平县',
+  '法库县',
+] as const
+
+/** 高德 POI 一级大类（销售扫街相关） */
+export const LEAD_CATEGORIES = [
+  '餐饮服务',
+  '购物服务',
+  '生活服务',
+  '体育休闲服务',
+  '医疗保健服务',
+  '住宿服务',
+  '汽车服务',
+  '汽车销售',
+  '汽车维修',
+  '摩托车服务',
+  '科教文化服务',
+  '金融保险服务',
+  '公司企业',
+  '商务住宅',
+  '风景名胜',
+  '公共设施',
+  '其他',
+] as const
+
+export type LeadDistrict = (typeof LEAD_DISTRICTS)[number]
+export type LeadCategory = (typeof LEAD_CATEGORIES)[number]
