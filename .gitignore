@@ -22,9 +22,6 @@ docs/FIELD_APP_USER_GUIDE.pdf
 test-results/
 playwright-report/
 
-# 外勤 APK（体积大，本地构建产物）
-backend/public/apk/*.apk
-
 # Git 离线包
 *.bundle
 
