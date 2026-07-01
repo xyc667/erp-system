@@ -1,6 +1,6 @@
 # ERP 企业资源计划系统
 
-基于 **NestJS + React + PostgreSQL** 的全栈 ERP，覆盖采购、销售、库存、生产、财务、人力、项目、报表与系统管理等模块。支持多租户、RBAC 权限、Redis 缓存、MinIO 文件存储、WebSocket 通知、区块链库存追溯锚点及中英文界面。
+基于 **NestJS + React + PostgreSQL** 的全栈 ERP，覆盖采购、销售、库存、生产、财务、人力、项目、报表与系统管理等模块；配套 **外勤移动端**（`mobile-field`，Expo / React Native）。支持多租户、RBAC 权限、Redis 缓存、MinIO 文件存储、WebSocket 通知、区块链库存追溯锚点及中英文界面。
 
 ## 功能概览
 
@@ -14,10 +14,49 @@
 | 人力 | 员工、部门、岗位、考勤、薪资 |
 | 报表 | 运营看板、BI 大屏、智能补货分析 |
 | 系统 | 用户、角色、权限、租户、审计、文件 |
+| **外勤 App** | 公海领取（含批量）、联系上报、录音上传、上报审核、消息、地图导航、离线上报、版本更新 |
+
+## 外勤 App（Android / iOS）
+
+面向销售外勤的移动端，与 Web ERP **共用账号与后端 API**。
+
+| 平台 | 当前版本 | 获取方式 |
+|------|----------|----------|
+| **Android** | v1.1.1（versionCode 5） | [下载 APK](https://github.com/xyc667/erp-system/raw/master/backend/public/apk/erp-field-latest.apk) |
+| **iOS** | 内测版 | TestFlight（见 [iOS 部署方案](docs/FIELD_APP_IOS_SETUP.md)） |
+
+**Android 安装：** 下载 APK 后安装；若提示签名冲突，先卸载旧版。租户编码默认 `default`，演示账号见 seed 配置。
+
+**自行构建 APK（Windows）：**
+
+```bash
+cd mobile-field
+cp .env.example .env    # 设置 EXPO_PUBLIC_API_URL 为你的后端地址
+npm run build:apk
+# 产物复制到 backend/public/apk/erp-field-latest.apk
+```
+
+**开发联调：**
+
+```bash
+npm run start:backend          # 项目根目录，需配置 backend/.env
+cd mobile-field && npm run android
+```
+
+| 文档 | 说明 |
+|------|------|
+| [docs/FIELD_APP_USER_GUIDE.md](docs/FIELD_APP_USER_GUIDE.md) | 安装、操作、FAQ |
+| [mobile-field/README.md](mobile-field/README.md) | 开发者构建与联调 |
+| [docs/FIELD_APP_IOS_SETUP.md](docs/FIELD_APP_IOS_SETUP.md) | EAS 云构建 + TestFlight |
+| [docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md) | 上云后外勤 App 配置 |
+
+版本检查接口（无需登录）：`GET /api/app/field-android/latest`、`GET /api/app/field-ios/latest`
 
 ## 界面预览
 
+### 登录页
 
+<img src="docs/images/erp-login.png" alt="登录页" width="720">
 
 ### 数据看板
 
@@ -97,7 +136,7 @@ seed 完成后，控制台会输出已创建的管理员与演示用户名；密
 ### 4. 启动开发服务
 
 ```bash
-# 终端 1 — 后端 API（默认 http://localhost:3000）
+# 终端 1 — 后端 API（默认 http://localhost:3000，可在 backend/.env 改 PORT）
 npm run start:backend
 
 # 终端 2 — 前端（默认 http://localhost:5173）
@@ -105,6 +144,14 @@ npm run start:frontend
 ```
 
 开发环境 Swagger 文档：http://localhost:3000/api
+
+常用脚本：
+
+| 命令 | 说明 |
+|------|------|
+| `npm run build:field-apk` | 构建外勤 Android Release APK |
+| `npm run docs:pdf` | 导出 Web / 外勤使用说明 PDF |
+| `npm run docs:verify:field-version` | 冒烟测试 App 版本接口 |
 
 ## Docker 部署
 
@@ -149,13 +196,16 @@ npm run test:perf         # 性能冒烟（需后端运行中）
 erp/
 ├── backend/          # NestJS API + Prisma
 ├── frontend/         # React + Vite + Ant Design
-├── docker/           # Docker Compose
+├── mobile-field/     # 外勤 App（Expo / React Native，Android + iOS）
+├── docker/           # Docker Compose（含生产 compose）
 ├── k8s/              # Kubernetes 清单
-├── docs/             # 用户与部署文档
+├── docs/             # 用户、外勤、部署文档
 ├── e2e/              # Playwright 测试
-├── scripts/          # 数据库初始化、PDF 导出
+├── scripts/          # 数据库初始化、PDF 导出、手册截图
 └── .github/workflows # CI 流水线
 ```
+
+> APK 文件位于 `backend/public/apk/erp-field-latest.apk`（Git LFS）。`.env`、keystore、公海 POI 数据 **不纳入仓库**。
 
 ## 权限模型
 
