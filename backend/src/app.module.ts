@@ -49,6 +49,7 @@ import { StorageModule } from './modules/storage/storage.module';
 import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { LeadsModule } from './modules/leads/leads.module';
+import { AppModule as MobileAppModule } from './modules/app/app.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -118,6 +119,7 @@ import { PrismaModule } from './prisma/prisma.module';
     IntelligenceModule,
     BlockchainModule,
     LeadsModule,
+    MobileAppModule,
   ],
   providers: [
     {

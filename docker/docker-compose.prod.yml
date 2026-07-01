@@ -1,0 +1,145 @@
+# 生产 Compose：服务仅绑定 127.0.0.1，由宿主机 Nginx 对外提供 HTTPS
+# 启动: docker compose -f docker/docker-compose.prod.yml --env-file docker/.env.prod up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: erp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d erp']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - erp_internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - erp_internal
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - erp_internal
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - erp_internal
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/erp?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: production
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
+      RUN_SEED: ${RUN_SEED:-false}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-change-me-admin}
+      SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-change-me-demo}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: erp-files
+      FIELD_ANDROID_VERSION_CODE: ${FIELD_ANDROID_VERSION_CODE:-1}
+      FIELD_ANDROID_VERSION_NAME: ${FIELD_ANDROID_VERSION_NAME:-1.0.0}
+      FIELD_ANDROID_MIN_VERSION_CODE: ${FIELD_ANDROID_MIN_VERSION_CODE:-1}
+      FIELD_ANDROID_FORCE_UPDATE: ${FIELD_ANDROID_FORCE_UPDATE:-false}
+      FIELD_ANDROID_RELEASE_NOTES: ${FIELD_ANDROID_RELEASE_NOTES:-}
+      FIELD_ANDROID_APK_PATH: ${FIELD_ANDROID_APK_PATH:-/apk/erp-field-latest.apk}
+      FIELD_IOS_VERSION_CODE: ${FIELD_IOS_VERSION_CODE:-1}
+      FIELD_IOS_VERSION_NAME: ${FIELD_IOS_VERSION_NAME:-1.0.0}
+      FIELD_IOS_MIN_VERSION_CODE: ${FIELD_IOS_MIN_VERSION_CODE:-1}
+      FIELD_IOS_FORCE_UPDATE: ${FIELD_IOS_FORCE_UPDATE:-false}
+      FIELD_IOS_RELEASE_NOTES: ${FIELD_IOS_RELEASE_NOTES:-}
+      FIELD_IOS_DOWNLOAD_URL: ${FIELD_IOS_DOWNLOAD_URL:-}
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      # 发版 APK 时可热更新，无需重建镜像
+      - ../backend/public/apk:/app/public/apk:ro
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - erp_internal
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:8080:80'
+    networks:
+      - erp_internal
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  erp_internal:
+    driver: bridge

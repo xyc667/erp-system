@@ -17,6 +17,8 @@ export default function LeadReports() {
   const [reviewTarget, setReviewTarget] = useState<ContactReport | null>(null)
   const [reviewStatus, setReviewStatus] = useState<'approved' | 'rejected'>('approved')
   const [reviewComment, setReviewComment] = useState('')
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [audioTitle, setAudioTitle] = useState('')
 
   const resultLabel = (key?: string | null) => {
     if (!key) return '—'
@@ -72,11 +74,13 @@ export default function LeadReports() {
     loadAll(1)
   }, [])
 
-  const playRecording = async (reportId: string) => {
+  const playRecording = async (report: ContactReport) => {
     try {
-      const res = await contactReportsService.getRecordingUrl(reportId)
-      if (res.data.url) window.open(res.data.url, '_blank')
-      else message.warning(t('leads.recordingUnavailable'))
+      const res = await contactReportsService.getRecordingUrl(report.id)
+      if (res.data.url) {
+        setAudioTitle(report.recordingFile?.fileName || report.lead?.name || t('leads.recording'))
+        setAudioUrl(res.data.url)
+      } else message.warning(t('leads.recordingUnavailable'))
     } catch {
       message.error(t('leads.recordingLoadFailed'))
     }
@@ -114,7 +118,7 @@ export default function LeadReports() {
       key: 'recording',
       render: (_: unknown, r: ContactReport) =>
         r.recordingFile ? (
-          <Button type="link" size="small" onClick={() => playRecording(r.id)}>{t('leads.playRecording')}</Button>
+          <Button type="link" size="small" onClick={() => playRecording(r)}>{t('leads.playRecording')}</Button>
         ) : '—',
     },
     {
@@ -234,6 +238,19 @@ export default function LeadReports() {
           placeholder={t('leads.reviewComment')}
           onChange={(e) => setReviewComment(e.target.value)}
         />
+      </Modal>
+      <Modal
+        title={audioTitle || t('leads.recording')}
+        open={!!audioUrl}
+        footer={null}
+        onCancel={() => setAudioUrl(null)}
+        destroyOnClose
+      >
+        {audioUrl ? (
+          <audio controls autoPlay style={{ width: '100%' }} src={audioUrl}>
+            <track kind="captions" />
+          </audio>
+        ) : null}
       </Modal>
     </div>
   )

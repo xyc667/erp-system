@@ -59,6 +59,15 @@ export class LeadsController {
     return this.leadsService.getContactReportStats();
   }
 
+  @Get('contact-reports/mine')
+  @RequirePermissions('lead:report')
+  listMyContactReports(
+    @Query() query: QueryContactReportsDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.leadsService.listMyContactReports(req.user.userId, query);
+  }
+
   @Get('contact-reports')
   @RequirePermissions('lead:review', 'lead:manage')
   listContactReports(@Query() query: QueryContactReportsDto) {

@@ -70,6 +70,9 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
                 await notificationsService.markRead(item.id)
                 loadNotifications()
               }
+              if (item.type.startsWith('lead.report')) {
+                navigate('/sales/leads/reports')
+              }
             }}
           >
             <List.Item.Meta

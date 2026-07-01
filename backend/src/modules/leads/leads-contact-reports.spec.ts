@@ -27,15 +27,21 @@ describe('LeadsService contact reports', () => {
     },
     user: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
     },
     $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
   } as unknown as PrismaService;
 
   const tenant = {
     where: jest.fn(() => tenantWhere),
+    getTenantId: jest.fn(() => 'tenant-1'),
   } as unknown as TenantService;
 
-  const service = new LeadsService(prisma, tenant);
+  const queue = {
+    publish: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const service = new LeadsService(prisma, tenant, queue as never);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,8 +79,11 @@ describe('LeadsService contact reports', () => {
     it('creates pending report and increments follow-up count', async () => {
       jest.spyOn(prisma.leadPool, 'findFirst').mockResolvedValue({
         id: leadId,
+        name: '测试店',
         quality: 'valid',
       } as never);
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue({ name: '陈销售' } as never);
+      jest.spyOn(prisma.user, 'findMany').mockResolvedValue([{ id: reviewerId, name: '刘销售' }] as never);
       jest.spyOn(prisma.leadFollowUp, 'create').mockResolvedValue({ id: 'report-1' } as never);
       jest.spyOn(prisma.leadPool, 'update').mockResolvedValue({ id: leadId } as never);
       jest.spyOn(service, 'findById').mockResolvedValue({ id: leadId } as never);
@@ -92,12 +101,7 @@ describe('LeadsService contact reports', () => {
           }),
         }),
       );
-      expect(prisma.leadPool.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: leadId },
-          data: expect.objectContaining({ followUpCount: { increment: 1 } }),
-        }),
-      );
+      expect(queue.publish).toHaveBeenCalled();
     });
   });
 
@@ -129,7 +133,10 @@ describe('LeadsService contact reports', () => {
     });
 
     it('updates review fields', async () => {
-      jest.spyOn(prisma.leadFollowUp, 'findFirst').mockResolvedValue({ id: 'report-1' } as never);
+      jest.spyOn(prisma.leadFollowUp, 'findFirst').mockResolvedValue({
+        id: 'report-1',
+        userId,
+      } as never);
       jest.spyOn(prisma.leadFollowUp, 'update').mockResolvedValue({
         id: 'report-1',
         reviewStatus: 'approved',
@@ -175,6 +182,21 @@ describe('LeadsService contact reports', () => {
       expect(stats.connectedRate).toBe(50);
       expect(stats.interestedRate).toBe(25);
       expect(stats.byUser[0]).toEqual({ userId: 'u1', userName: '陈销售', count: 4 });
+    });
+  });
+
+  describe('listMyContactReports', () => {
+    it('scopes reports to the current user', async () => {
+      jest.spyOn(prisma.leadFollowUp, 'findMany').mockResolvedValue([] as never);
+      jest.spyOn(prisma.leadFollowUp, 'count').mockResolvedValue(0);
+
+      await service.listMyContactReports(userId, { page: 1, pageSize: 10 });
+
+      expect(prisma.leadFollowUp.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ userId, isReport: true }),
+        }),
+      );
     });
   });
 

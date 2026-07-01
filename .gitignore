@@ -7,6 +7,8 @@ coverage/
 .env.*.local
 backend/.env
 frontend/.env
+mobile-field/.env
+docker/.env.prod
 !.env.example
 !**/.env.example
 .DS_Store
@@ -14,9 +16,17 @@ frontend/.env
 docs/_USER_MANUAL_export.html
 docs/USER_MANUAL.pdf
 docs/USER_MANUAL.pdf.tmp
+docs/USER_MANUAL_*.pdf
+docs/FIELD_APP_USER_GUIDE.pdf
 .playwright/
 test-results/
 playwright-report/
+
+# 外勤 APK（体积大，本地构建产物）
+backend/public/apk/*.apk
+
+# Git 离线包
+*.bundle
 
 # 公海 POI 导入产物（勿提交真实线索数据）
 scripts/upload-result.json

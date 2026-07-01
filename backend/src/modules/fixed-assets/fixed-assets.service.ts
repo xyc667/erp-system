@@ -1,11 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { generateOrderNo } from '../../common/utils/order-no';
+import { ReportService } from '../report/report.service';
 import { CreateFixedAssetDto } from './dto/create-fixed-asset.dto';
 
 @Injectable()
 export class FixedAssetsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reportService: ReportService,
+  ) {}
 
   findAll() {
     return this.prisma.fixedAsset.findMany({ orderBy: { createdAt: 'desc' } });
@@ -23,7 +27,7 @@ export class FixedAssetsService {
       });
     });
 
-    return this.prisma.fixedAsset.create({
+    const created = await this.prisma.fixedAsset.create({
       data: {
         assetNo,
         name: dto.name,
@@ -34,6 +38,8 @@ export class FixedAssetsService {
         location: dto.location,
       },
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return created;
   }
 
   async depreciate(id: string) {
@@ -45,13 +51,15 @@ export class FixedAssetsService {
     const newAccumulated = Number(asset.accumulatedDepreciation) + monthlyDepreciation;
     const netValue = Number(asset.originalValue) - newAccumulated;
 
-    return this.prisma.fixedAsset.update({
+    const updated = await this.prisma.fixedAsset.update({
       where: { id },
       data: {
         accumulatedDepreciation: newAccumulated,
         status: netValue <= 0 ? 'fully_depreciated' : 'active',
       },
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return updated;
   }
 
   async dispose(id: string) {
@@ -59,15 +67,19 @@ export class FixedAssetsService {
     if (!asset) throw new NotFoundException('固定资产不存在');
     if (asset.status === 'disposed') throw new BadRequestException('资产已处置');
 
-    return this.prisma.fixedAsset.update({
+    const updated = await this.prisma.fixedAsset.update({
       where: { id },
       data: { status: 'disposed' },
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return updated;
   }
 
   async remove(id: string) {
     const asset = await this.findById(id);
     if (!asset) throw new NotFoundException('固定资产不存在');
-    return this.prisma.fixedAsset.delete({ where: { id } });
+    const deleted = await this.prisma.fixedAsset.delete({ where: { id } });
+    await this.reportService.invalidateFinanceReportCache();
+    return deleted;
   }
 }

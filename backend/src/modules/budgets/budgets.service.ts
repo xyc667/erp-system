@@ -62,6 +62,29 @@ export class BudgetsService {
     return this.prisma.budget.delete({ where: { id } });
   }
 
+  private async findActiveBudget(category: string) {
+    const tenantId = this.tenant.getTenantId();
+    if (!tenantId) return null;
+
+    const year = new Date().getFullYear();
+    return this.prisma.budget.findFirst({
+      where: { tenantId, year, category, status: 'active' },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async assertWithinBudget(category: string, amount: number) {
+    const budget = await this.findActiveBudget(category);
+    if (!budget) return;
+
+    const newUsed = Number(budget.usedAmount) + amount;
+    if (newUsed > Number(budget.totalAmount)) {
+      throw new BadRequestException(
+        `采购订单金额超出预算可用额度（${budget.name}/${budget.code}：总额 ${Number(budget.totalAmount).toFixed(2)}，已用 ${Number(budget.usedAmount).toFixed(2)}，本次 ${amount.toFixed(2)}）`,
+      );
+    }
+  }
+
   async recordUsage(
     category: string,
     amount: number,
@@ -71,11 +94,7 @@ export class BudgetsService {
     const tenantId = this.tenant.getTenantId();
     if (!tenantId) return null;
 
-    const year = new Date().getFullYear();
-    const budget = await this.prisma.budget.findFirst({
-      where: { tenantId, year, category, status: 'active' },
-      orderBy: { createdAt: 'asc' },
-    });
+    const budget = await this.findActiveBudget(category);
     if (!budget) return null;
 
     const newUsed = Number(budget.usedAmount) + amount;

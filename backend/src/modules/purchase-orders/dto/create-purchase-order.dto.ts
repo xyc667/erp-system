@@ -1,19 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
-
-export class PurchaseOrderItemDto {
-  @IsNotEmpty()
-  @IsString()
-  productId: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  quantity: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  unitPrice: number;
-}
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { PurchaseOrderItemDto } from './purchase-order-item.dto';
 
 export class CreatePurchaseOrderDto {
   @IsNotEmpty()

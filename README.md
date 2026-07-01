@@ -118,17 +118,21 @@ npm run docker:up
 | 后端 API | http://localhost:3000 |
 | PostgreSQL | localhost:5432 |
 
-详见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)（含 Kubernetes、Redis、MinIO、性能测试说明）。
+详见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)（含 Kubernetes、Redis、MinIO、性能测试说明）。  
+**云服务器生产部署：** [docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md)
 
 ## 文档
 
 | 文档 | 说明 |
 |------|------|
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | 业务流程与 FAQ |
-| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | 详细使用说明（含截图） |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 部署指南 |
+| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | 详细使用说明（含财务、公海线索等分模块步骤与 FAQ） |
+| [docs/FIELD_APP_USER_GUIDE.md](docs/FIELD_APP_USER_GUIDE.md) | **外勤 App**（Android / iOS）安装与操作说明 |
+| [docs/FIELD_APP_IOS_SETUP.md](docs/FIELD_APP_IOS_SETUP.md) | **外勤 iOS 部署方案**（EAS + TestFlight + 云 API） |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 部署指南（Docker / K8s） |
+| [docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md) | **云服务器生产部署**（HTTPS、外勤 App） |
 
-本地生成 PDF：`npm run docs:pdf` → `docs/USER_MANUAL.pdf`
+本地生成 PDF：`npm run docs:pdf` → `docs/USER_MANUAL.pdf` + `docs/FIELD_APP_USER_GUIDE.pdf`
 
 ## 测试
 

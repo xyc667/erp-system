@@ -1,6 +1,8 @@
 /**
- * Export docs/USER_MANUAL.md to PDF (with embedded images).
- * Usage: node scripts/export-manual-pdf.mjs
+ * Export Markdown manuals under docs/ to PDF (with embedded images).
+ * Usage:
+ *   node scripts/export-manual-pdf.mjs              # all configured manuals
+ *   node scripts/export-manual-pdf.mjs USER_MANUAL  # one manual by key
  */
 import fs from 'fs'
 import path from 'path'
@@ -11,19 +13,28 @@ import { marked } from 'marked'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
 const docsDir = path.join(root, 'docs')
-const mdPath = path.join(docsDir, 'USER_MANUAL.md')
-const htmlPath = path.join(docsDir, '_USER_MANUAL_export.html')
-const pdfPath = path.join(docsDir, 'USER_MANUAL.pdf')
-const pdfTmp = path.join(docsDir, 'USER_MANUAL.pdf.tmp')
 
-const md = fs.readFileSync(mdPath, 'utf8')
-const body = marked.parse(md)
+const MANUALS = {
+  USER_MANUAL: {
+    md: 'USER_MANUAL.md',
+    pdf: 'USER_MANUAL.pdf',
+    title: 'ERP 系统详细使用说明',
+    header: 'ERP 系统详细使用说明',
+  },
+  FIELD_APP: {
+    md: 'FIELD_APP_USER_GUIDE.md',
+    pdf: 'FIELD_APP_USER_GUIDE.pdf',
+    title: 'ERP 外勤 App 使用说明',
+    header: 'ERP 外勤 App 使用说明',
+  },
+}
 
-const html = `<!DOCTYPE html>
+function buildHtml(body, title) {
+  return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>ERP 系统详细使用说明</title>
+  <title>${title}</title>
   <style>
     @page { margin: 18mm 16mm; }
     body {
@@ -68,29 +79,74 @@ const html = `<!DOCTYPE html>
 ${body}
 </body>
 </html>`
+}
 
-fs.writeFileSync(htmlPath, html, 'utf8')
+function finalizePdf(pdfPath, pdfTmp) {
+  try {
+    if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath)
+    fs.renameSync(pdfTmp, pdfPath)
+    return pdfPath
+  } catch {
+    try {
+      fs.copyFileSync(pdfTmp, pdfPath)
+      fs.unlinkSync(pdfTmp)
+      return pdfPath
+    } catch {
+      const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const base = path.basename(pdfPath, '.pdf')
+      const fallback = path.join(docsDir, `${base}_${stamp}.pdf`)
+      fs.copyFileSync(pdfTmp, fallback)
+      fs.unlinkSync(pdfTmp)
+      console.warn(`Warning: ${pdfPath} is locked (close PDF viewer and re-run).`)
+      console.warn(`Saved to: ${fallback}`)
+      return fallback
+    }
+  }
+}
+
+async function exportOne(config, browser) {
+  const mdPath = path.join(docsDir, config.md)
+  const pdfPath = path.join(docsDir, config.pdf)
+  const pdfTmp = path.join(docsDir, `${config.pdf}.tmp`)
+  const htmlPath = path.join(docsDir, `_${path.basename(config.pdf, '.pdf')}_export.html`)
+
+  if (!fs.existsSync(mdPath)) {
+    throw new Error(`Markdown not found: ${mdPath}`)
+  }
+
+  const md = fs.readFileSync(mdPath, 'utf8')
+  const body = marked.parse(md)
+  fs.writeFileSync(htmlPath, buildHtml(body, config.title), 'utf8')
+
+  const page = await browser.newPage()
+  await page.goto(`file:///${htmlPath.replace(/\\/g, '/')}`, { waitUntil: 'networkidle' })
+  await page.pdf({
+    path: pdfTmp,
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '16mm', bottom: '16mm', left: '14mm', right: '14mm' },
+    displayHeaderFooter: true,
+    headerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#94a3b8;">${config.header}</div>`,
+    footerTemplate:
+      '<div style="font-size:8px;width:100%;text-align:center;color:#94a3b8;">第 <span class="pageNumber"></span> / <span class="totalPages"></span> 页</div>',
+  })
+  await page.close()
+
+  const outPath = finalizePdf(pdfPath, pdfTmp)
+  fs.unlinkSync(htmlPath)
+  const sizeKb = (fs.statSync(outPath).size / 1024).toFixed(1)
+  console.log(`PDF exported: ${outPath} (${sizeKb} KB)`)
+  return outPath
+}
+
+const arg = process.argv[2]?.toUpperCase()
+const keys = arg && MANUALS[arg] ? [arg] : Object.keys(MANUALS)
 
 const browser = await chromium.launch()
-const page = await browser.newPage()
-await page.goto(`file:///${htmlPath.replace(/\\/g, '/')}`, { waitUntil: 'networkidle' })
-await page.pdf({
-  path: pdfTmp,
-  format: 'A4',
-  printBackground: true,
-  margin: { top: '16mm', bottom: '16mm', left: '14mm', right: '14mm' },
-  displayHeaderFooter: true,
-  headerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#94a3b8;">ERP 系统详细使用说明</div>',
-  footerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#94a3b8;">第 <span class="pageNumber"></span> / <span class="totalPages"></span> 页</div>',
-})
-await browser.close()
-
 try {
-  if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath)
-} catch {
-  /* Windows may lock the file if open in a viewer */
+  for (const key of keys) {
+    await exportOne(MANUALS[key], browser)
+  }
+} finally {
+  await browser.close()
 }
-fs.renameSync(pdfTmp, pdfPath)
-fs.unlinkSync(htmlPath)
-console.log(`PDF exported: ${pdfPath}`)
-console.log(`Size: ${(fs.statSync(pdfPath).size / 1024).toFixed(1)} KB`)

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { REPORT_FINANCE_CACHE_KEY } from './report-cache.constants';
 
 @Injectable()
 export class ReportService {
@@ -90,13 +91,18 @@ export class ReportService {
   }
 
   async getFinanceReport() {
-    const cacheKey = 'report:finance';
-    const cached = await this.cache.get<Awaited<ReturnType<ReportService['buildFinanceReport']>>>(cacheKey);
+    const cached = await this.cache.get<Awaited<ReturnType<ReportService['buildFinanceReport']>>>(
+      REPORT_FINANCE_CACHE_KEY,
+    );
     if (cached) return cached;
 
     const data = await this.buildFinanceReport();
-    await this.cache.set(cacheKey, data, 120);
+    await this.cache.set(REPORT_FINANCE_CACHE_KEY, data, 120);
     return data;
+  }
+
+  invalidateFinanceReportCache() {
+    return this.cache.del(REPORT_FINANCE_CACHE_KEY);
   }
 
   private async buildFinanceReport() {

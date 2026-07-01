@@ -21,6 +21,7 @@ import { InvalidateLeadDto } from './dto/invalidate-lead.dto';
 import { QueryContactReportsDto } from './dto/query-contact-reports.dto';
 import { QueryLeadsDto } from './dto/query-leads.dto';
 import { ReviewContactReportDto } from './dto/review-contact-report.dto';
+import { QueueService } from '../queue/queue.service';
 
 const QUALITY_BY_INVALID: Record<string, string> = {
   empty_phone: 'empty_phone',
@@ -33,13 +34,25 @@ export class LeadsService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private tenant: TenantService,
+    private queue: QueueService,
   ) {}
 
   private followUpInclude = {
     user: { select: { id: true, name: true } },
     recordingFile: { select: { id: true, fileName: true, mimeType: true } },
     reviewedBy: { select: { id: true, name: true } },
-    lead: { select: { id: true, name: true, phone: true, district: true, category: true } },
+    lead: {
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        district: true,
+        category: true,
+        address: true,
+        lat: true,
+        lng: true,
+      },
+    },
   } as const;
 
   onModuleInit() {
@@ -50,6 +63,41 @@ export class LeadsService implements OnModuleInit {
 
   private tenantWhere() {
     return this.tenant.where();
+  }
+
+  private async findUsersWithPermissions(tenantId: string, codes: string[]) {
+    return this.prisma.user.findMany({
+      where: {
+        tenantId,
+        status: 'active',
+        role: {
+          rolePermissions: {
+            some: { permission: { code: { in: codes } } },
+          },
+        },
+      },
+      select: { id: true, name: true },
+    });
+  }
+
+  private async notifyUsers(
+    tenantId: string,
+    userIds: string[],
+    event: { type: string; title: string; message: string; payload?: Record<string, unknown> },
+  ) {
+    const unique = [...new Set(userIds)];
+    await Promise.all(
+      unique.map((userId) =>
+        this.queue.publish({
+          type: event.type,
+          tenantId,
+          userId,
+          title: event.title,
+          message: event.message,
+          payload: event.payload,
+        }),
+      ),
+    );
   }
 
   private async countClaimed(userId: string) {
@@ -238,7 +286,11 @@ export class LeadsService implements OnModuleInit {
     }
     const now = new Date();
     const quality = dto.quality ?? lead.quality;
-    await this.prisma.$transaction([
+    const reporter = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
+    });
+    const [report] = await this.prisma.$transaction([
       this.prisma.leadFollowUp.create({
         data: {
           leadId: id,
@@ -262,6 +314,20 @@ export class LeadsService implements OnModuleInit {
         },
       }),
     ]);
+    const tenantId = this.tenant.getTenantId();
+    if (tenantId) {
+      const reviewers = await this.findUsersWithPermissions(tenantId, ['lead:review', 'lead:manage']);
+      await this.notifyUsers(
+        tenantId,
+        reviewers.map((u) => u.id),
+        {
+          type: 'lead.report.submitted',
+          title: '新的联系上报',
+          message: `${reporter?.name ?? '销售'} 提交了「${lead.name}」的联系上报，待审核`,
+          payload: { reportId: report.id, leadId: id },
+        },
+      );
+    }
     return this.findById(id);
   }
 
@@ -288,6 +354,10 @@ export class LeadsService implements OnModuleInit {
     return { items, total, page, pageSize };
   }
 
+  async listMyContactReports(userId: string, query: QueryContactReportsDto) {
+    return this.listContactReports({ ...query, userId });
+  }
+
   async reviewContactReport(reportId: string, reviewerId: string, dto: ReviewContactReportDto) {
     const report = await this.prisma.leadFollowUp.findFirst({
       where: {
@@ -298,7 +368,7 @@ export class LeadsService implements OnModuleInit {
       },
     });
     if (!report) throw new NotFoundException('上报记录不存在或已审核');
-    return this.prisma.leadFollowUp.update({
+    const updated = await this.prisma.leadFollowUp.update({
       where: { id: reportId },
       data: {
         reviewStatus: dto.status,
@@ -308,6 +378,19 @@ export class LeadsService implements OnModuleInit {
       },
       include: this.followUpInclude,
     });
+    const tenantId = this.tenant.getTenantId();
+    if (tenantId) {
+      const approved = dto.status === 'approved';
+      await this.notifyUsers(tenantId, [report.userId], {
+        type: 'lead.report.reviewed',
+        title: approved ? '上报已通过' : '上报已驳回',
+        message: approved
+          ? `您提交的联系上报已通过审核`
+          : `您提交的联系上报被驳回${dto.comment ? `：${dto.comment}` : ''}`,
+        payload: { reportId, status: dto.status },
+      });
+    }
+    return updated;
   }
 
   async getContactReportStats() {

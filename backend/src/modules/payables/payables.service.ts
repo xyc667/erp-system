@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { generateOrderNo } from '../../common/utils/order-no';
+import { ReportService } from '../report/report.service';
 import { RecordPaymentDto } from './dto/record-payment.dto';
 
 const includeRelations = {
@@ -10,7 +11,10 @@ const includeRelations = {
 
 @Injectable()
 export class PayablesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reportService: ReportService,
+  ) {}
 
   findAll() {
     return this.prisma.accountPayable.findMany({
@@ -47,7 +51,7 @@ export class PayablesService {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
 
-    return this.prisma.accountPayable.create({
+    const created = await this.prisma.accountPayable.create({
       data: {
         billNo,
         vendorId: order.vendorId,
@@ -57,6 +61,8 @@ export class PayablesService {
       },
       include: includeRelations,
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return created;
   }
 
   async recordPayment(id: string, dto: RecordPaymentDto) {
@@ -71,10 +77,12 @@ export class PayablesService {
     if (paidAmount >= amount) status = 'paid';
     else if (paidAmount === 0) status = 'open';
 
-    return this.prisma.accountPayable.update({
+    const updated = await this.prisma.accountPayable.update({
       where: { id },
       data: { paidAmount, status },
       include: includeRelations,
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return updated;
   }
 }

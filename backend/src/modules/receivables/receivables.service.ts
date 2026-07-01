@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { generateOrderNo } from '../../common/utils/order-no';
+import { ReportService } from '../report/report.service';
 import { RecordReceiptDto } from './dto/record-receipt.dto';
 
 const includeRelations = {
@@ -10,7 +11,10 @@ const includeRelations = {
 
 @Injectable()
 export class ReceivablesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reportService: ReportService,
+  ) {}
 
   findAll() {
     return this.prisma.accountReceivable.findMany({
@@ -47,7 +51,7 @@ export class ReceivablesService {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
 
-    return this.prisma.accountReceivable.create({
+    const created = await this.prisma.accountReceivable.create({
       data: {
         billNo,
         customerId: order.customerId,
@@ -57,6 +61,8 @@ export class ReceivablesService {
       },
       include: includeRelations,
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return created;
   }
 
   async recordReceipt(id: string, dto: RecordReceiptDto) {
@@ -71,10 +77,12 @@ export class ReceivablesService {
     if (receivedAmount >= amount) status = 'paid';
     else if (receivedAmount === 0) status = 'open';
 
-    return this.prisma.accountReceivable.update({
+    const updated = await this.prisma.accountReceivable.update({
       where: { id },
       data: { receivedAmount, status },
       include: includeRelations,
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return updated;
   }
 }

@@ -1,0 +1,8 @@
+# 1. 先开 Docker Desktop（等 Postgres 起来）
+# 2. 后端
+cd D:\代码\erp\backend
+npm run start:dev
+
+# 3. 前端（frontend/.env 已配置代理到 3001）
+cd D:\代码\erp\frontend
+npm run dev

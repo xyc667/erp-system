@@ -1,5 +1,7 @@
 # 部署指南
 
+> **云服务器生产部署（域名 + HTTPS + 外勤 App）：** [CLOUD_DEPLOYMENT.md](CLOUD_DEPLOYMENT.md)
+
 ## Docker Compose（推荐开发/测试）
 
 ```bash
@@ -91,7 +93,7 @@ kubectl scale deployment frontend -n erp --replicas=3
 设置环境变量 `REDIS_URL` 后，报表/看板数据将缓存至 Redis：
 
 - 运营概览：60 秒 TTL
-- 财务报表：120 秒 TTL
+- 财务报表：120 秒 TTL（应收/应付收付款、发货/收货、凭证过账时会 **自动清除** 缓存，无需等待 TTL）
 
 未配置 Redis 时自动降级为进程内内存缓存。
 

@@ -87,6 +87,8 @@ export class PurchaseOrdersService {
     if (!order) throw new NotFoundException('采购订单不存在');
     if (order.status !== 'draft') throw new BadRequestException('只能审批草稿订单');
 
+    await this.budgetsService.assertWithinBudget('procurement', Number(order.totalAmount));
+
     const updated = await this.prisma.purchaseOrder.update({
       where: { id },
       data: {

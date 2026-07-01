@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { generateOrderNo } from '../../common/utils/order-no';
+import { ReportService } from '../report/report.service';
 import { CreateGlJournalDto } from './dto/create-gl-journal.dto';
 
 const includeRelations = {
@@ -11,7 +12,10 @@ const includeRelations = {
 
 @Injectable()
 export class GlJournalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reportService: ReportService,
+  ) {}
 
   findAll() {
     return this.prisma.glJournal.findMany({
@@ -67,7 +71,7 @@ export class GlJournalsService {
     if (!journal) throw new NotFoundException('凭证不存在');
     if (journal.status !== 'draft') throw new BadRequestException('只能审批草稿凭证');
 
-    return this.prisma.glJournal.update({
+    const updated = await this.prisma.glJournal.update({
       where: { id },
       data: {
         status: 'posted',
@@ -76,6 +80,8 @@ export class GlJournalsService {
       },
       include: includeRelations,
     });
+    await this.reportService.invalidateFinanceReportCache();
+    return updated;
   }
 
   async remove(id: string) {
