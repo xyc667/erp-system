@@ -22,7 +22,7 @@
 
 | 平台 | 当前版本 | 获取方式 |
 |------|----------|----------|
-| **Android** | v1.1.1（versionCode 5） | [下载 APK](https://github.com/xyc667/erp-system/raw/master/backend/public/apk/erp-field-latest.apk) |
+| **Android** | v1.1.1（versionCode 5） | [Release 下载 APK](https://github.com/xyc667/erp-system/releases/download/field-v1.1.1/erp-field-latest.apk) · [Release 页](https://github.com/xyc667/erp-system/releases/tag/field-v1.1.1) |
 | **iOS** | 内测版 | TestFlight（见 [iOS 部署方案](docs/FIELD_APP_IOS_SETUP.md)） |
 
 **Android 安装：** 下载 APK 后安装；若提示签名冲突，先卸载旧版。租户编码默认 `default`，演示账号见 seed 配置。
@@ -205,7 +205,7 @@ erp/
 └── .github/workflows # CI 流水线
 ```
 
-> APK 文件位于 `backend/public/apk/erp-field-latest.apk`（Git LFS）。`.env`、keystore、公海 POI 数据 **不纳入仓库**。
+> APK 文件位于 `backend/public/apk/erp-field-latest.apk`（Git LFS，需 `git push` 同步）。**推荐从 [Releases](https://github.com/xyc667/erp-system/releases) 下载。** `.env`、keystore、公海 POI 数据 **不纳入仓库**。
 
 ## 权限模型
 
