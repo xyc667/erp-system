@@ -89,8 +89,6 @@ cd mobile-field && npm run android
 |------|------|
 | <img src="docs/images/app/1.png" alt="外勤 App 登录" width="240"> | 登录 |
 | <img src="docs/images/app/2.png" alt="公海线索" width="240"> | 公海 |
-| <img src="docs/images/app/4.png" alt="我的线索" width="240"> | 我的线索 |
-| <img src="docs/images/app/5.png" alt="联系上报" width="240"> | 联系上报 |
 
 ### 登录页
 
