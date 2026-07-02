@@ -120,7 +120,6 @@ cd mobile-field && npm run android
 
 <img src="docs/images/erp-leads-pool.png" alt="公海线索" width="720">
 
-<img src="docs/images/erp-leads-contact-report.png" alt="联系上报" width="720">
 
 <img src="docs/images/erp-leads-reports-pending.png" alt="上报审核" width="720">
 
