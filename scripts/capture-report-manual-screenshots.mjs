@@ -80,8 +80,25 @@ const context = await browser.newContext({
 })
 const page = await context.newPage()
 
+await page.goto(`${baseURL}/login`)
+await page.evaluate(() => {
+  localStorage.clear()
+  localStorage.setItem('erp_lang', 'zh')
+})
+await page.reload()
+await page.getByPlaceholder('用户名').waitFor({ timeout: 20_000 })
+await page.waitForTimeout(500)
+await page.screenshot({ path: path.join(outDir, 'erp-login.png') })
+console.log('  ✓ erp-login.png')
+
 console.log('Logging in as admin...')
 await login(page)
+
+await page.goto(`${baseURL}/dashboard`)
+await page.getByTestId('dashboard-title').waitFor({ timeout: 20_000 })
+await page.waitForTimeout(1000)
+await page.screenshot({ path: path.join(outDir, 'erp-dashboard.png') })
+console.log('  ✓ erp-dashboard.png')
 
 console.log('Capturing report center screenshots...')
 
@@ -109,8 +126,9 @@ await page.screenshot({ path: path.join(outDir, 'erp-intelligence-finance.png') 
 console.log('  ✓ erp-intelligence-finance.png')
 
 await page.goto(`${baseURL}/bi-screen`)
-await page.getByRole('heading', { name: '运营 BI 大屏' }).waitFor({ timeout: 20_000 })
-await page.waitForTimeout(800)
+await page.locator('.bi-screen__title').filter({ hasText: '运营 BI 大屏' }).waitFor({ timeout: 20_000 })
+await page.locator('.bi-screen__kpi').first().waitFor({ timeout: 20_000 })
+await page.waitForTimeout(1500)
 await page.screenshot({ path: path.join(outDir, 'erp-bi-screen.png') })
 console.log('  ✓ erp-bi-screen.png')
 

@@ -77,6 +77,21 @@ cd mobile-field && npm run android
 
 支持**中文表头**（店名、电话、区县…）与英文表头；仅店名必填。CSV 解析与校验见 `frontend/src/utils/leadImportParse.ts`。
 
+<img src="docs/images/erp-system-leads-import.png" alt="线索导入向导" width="720">
+
+<img src="docs/images/erp-system-leads-import-preview.png" alt="线索导入预览校验" width="720">
+
+### 外勤 App（Android）
+
+与 Web 共用账号；Android 可直接安装 APK，iPhone 可用 Web/PWA 或 TestFlight 内测（见 [iOS 部署方案](docs/FIELD_APP_IOS_SETUP.md)）。
+
+| 截图 | 说明 |
+|------|------|
+| <img src="docs/images/app/1.png" alt="外勤 App 登录" width="240"> | 登录 |
+| <img src="docs/images/app/2.png" alt="公海线索" width="240"> | 公海 |
+| <img src="docs/images/app/4.png" alt="我的线索" width="240"> | 我的线索 |
+| <img src="docs/images/app/5.png" alt="联系上报" width="240"> | 联系上报 |
+
 ### 登录页
 
 <img src="docs/images/erp-login.png" alt="登录页" width="720">
