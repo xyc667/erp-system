@@ -12,8 +12,10 @@
 | 生产 | BOM、计划、工单、质检 |
 | 财务 | 总账、应收应付、固定资产、预算、报表 |
 | 人力 | 员工、部门、岗位、考勤、薪资 |
-| 报表 | 运营看板、BI 大屏、智能补货分析 |
-| 系统 | 用户、角色、权限、租户、审计、文件 |
+| 报表 | 运营看板、**BI 大屏**（KPI 滚动、线索地图、事件流、订单滚动条）、智能补货分析 |
+| 系统 | 用户、角色、权限、租户、审计、文件、**线索导入向导**（模板 / 预览 / 单条录入） |
+| **桌面助手** | 右下角像素猫桌宠：路由提示、打字机气泡、快捷入口、可改名 |
+| **个人设置** | Header 抽屉：资料、时区、币种、改密、猫名 |
 | **外勤 App** | 公海领取（含批量）、联系上报、录音上传、上报审核、消息、地图导航、离线上报、版本更新 |
 
 ## 外勤 App（Android / iOS）
@@ -53,6 +55,27 @@ cd mobile-field && npm run android
 版本检查接口（无需登录）：`GET /api/app/field-android/latest`、`GET /api/app/field-ios/latest`
 
 ## 界面预览
+
+### BI 大屏（`/bi-screen`）
+
+全屏运营数据展示，30 秒自动刷新。除销售趋势、订单状态、销采对比外，还包括：
+
+- **KPI 数字滚动动画**
+- **沈阳线索分布地图**（区县气泡 + POI 散点，数据来自公海线索）
+- **业务事件流**（销售/采购订单、线索转化、系统操作）
+- **底部订单滚动条**（近期销采订单）
+
+数据接口：`GET /api/dashboard/stats`（统计）、`GET /api/dashboard/feed`（地图 / 事件 / 订单，30s 缓存）。
+
+### 线索导入（`/system/leads/import`）
+
+| 方式 | 说明 |
+|------|------|
+| **单条添加** | 表单录入店名、电话、区县、品类等，支持「保存并继续下一条」 |
+| **批量导入** | 下载 CSV 模板 → 拖拽上传 → **预览校验** → 确认导入 |
+| 高级 | JSON 数组（折叠面板，供脚本对接） |
+
+支持**中文表头**（店名、电话、区县…）与英文表头；仅店名必填。CSV 解析与校验见 `frontend/src/utils/leadImportParse.ts`。
 
 ### 登录页
 
@@ -152,6 +175,16 @@ npm run start:frontend
 | `npm run build:field-apk` | 构建外勤 Android Release APK |
 | `npm run docs:pdf` | 导出 Web / 外勤使用说明 PDF |
 | `npm run docs:verify:field-version` | 冒烟测试 App 版本接口 |
+| `node scripts/test-system-flow.mjs` | 系统管理 + 线索导入 API 冒烟 |
+| `node scripts/import-shenyang-poi.mjs` | 从高德/OSM 导入沈阳 POI 公海数据 |
+
+## 近期更新
+
+- **BI 大屏**：科技风布局、全屏修复、地图 / 事件流 / 订单滚动、数字动画
+- **线索导入**：三步向导、CSV 模板、预览校验、单条表单
+- **桌面助手**：像素猫精灵图、路由台词、打字机、可拖拽
+- **个人设置**：`PATCH /api/auth/me`、`PATCH /api/auth/me/password`
+- **UI 统一**：PageCard / PageEmpty / 看板欢迎区、侧栏与空状态优化
 
 ## Docker 部署
 
@@ -213,7 +246,9 @@ erp/
 - **前端**：侧栏菜单过滤 + 路由级 `PermissionRoute`（403 页）
 
 ## 声明
-  禁止商业用途！！！
+
+禁止商业用途！！！
+
 ## 许可证
 
 MIT

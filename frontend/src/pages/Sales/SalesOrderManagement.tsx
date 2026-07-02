@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Select, InputNumber, Tag, message, Space } from 'antd'
+import { Button, Form, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, SendOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { salesOrdersService, SalesOrder } from '../../services/salesOrders'
 import { customersService, Customer } from '../../services/customers'
 import { productsService, Product } from '../../services/products'
@@ -105,6 +107,7 @@ export default function SalesOrderManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ items: [{}] })
@@ -112,8 +115,9 @@ export default function SalesOrderManagement() {
       }}>{t('sales.createOrder')}</Button>
       <ResponsiveTable columns={columns} dataSource={orders} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
 
-      <Modal title={t('sales.createOrderModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} width={720}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('sales.createOrderModal')} open={modalOpen} onCancel={() => setModalOpen(false)} width={720} form={form} onFinish={async (values) => {
           await salesOrdersService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -147,12 +151,9 @@ export default function SalesOrderManagement() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('sales.shipModal')} open={shipModalOpen} onCancel={() => setShipModalOpen(false)} footer={null}>
-        <Form form={shipForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('sales.shipModal')} open={shipModalOpen} onCancel={() => setShipModalOpen(false)} form={shipForm} onFinish={async (values) => {
           if (!shipOrderId) return
           await salesOrdersService.ship(shipOrderId, values.warehouseId)
           message.success(t('common.shipSuccess'))
@@ -164,9 +165,7 @@ export default function SalesOrderManagement() {
               {warehouses.map((w) => <Select.Option key={w.id} value={w.id}>{w.name}</Select.Option>)}
             </Select>
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.confirmShip')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

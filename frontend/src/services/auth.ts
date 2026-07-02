@@ -50,4 +50,10 @@ export const authService = {
 
   updatePreferences: (data: { timezone?: string; currency?: string }) =>
     api.patch<ProfileResponse>('/auth/me/preferences', data),
+
+  updateProfile: (data: { name?: string; email?: string; phone?: string }) =>
+    api.patch<ProfileResponse>('/auth/me', data),
+
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.patch<{ success: boolean }>('/auth/me/password', data),
 }

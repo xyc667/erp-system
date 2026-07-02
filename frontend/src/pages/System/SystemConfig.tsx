@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Tabs, Button, Modal, Form, Input, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, message, Modal, Tabs } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { systemService, SystemConfig, Dictionary } from '../../services/system'
@@ -88,6 +90,7 @@ export default function SystemConfigPage() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Tabs items={[
         {
           key: 'config',
@@ -118,6 +121,7 @@ export default function SystemConfigPage() {
                 expandable={{
                   expandedRowRender: (record) => (
                     <ResponsiveTable
+                      embedded
                       size="small"
                       pagination={false}
                       rowKey="id"
@@ -146,8 +150,9 @@ export default function SystemConfigPage() {
         },
       ]} />
 
-      <Modal title={t('system.addConfigModal')} open={configModalOpen} onCancel={() => setConfigModalOpen(false)} footer={null}>
-        <Form form={configForm} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('system.addConfigModal')} open={configModalOpen} onCancel={() => setConfigModalOpen(false)} form={configForm} onFinish={async (values) => {
           await systemService.createConfig(values)
           message.success(t('common.createSuccess'))
           setConfigModalOpen(false)
@@ -157,12 +162,9 @@ export default function SystemConfigPage() {
           <Form.Item name="value" label={t('common.configValue')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="group" label={t('common.group')}><Input placeholder="general" /></Form.Item>
           <Form.Item name="description" label={t('common.description')}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('system.addDictionaryModal')} open={dictModalOpen} onCancel={() => setDictModalOpen(false)} footer={null}>
-        <Form form={dictForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('system.addDictionaryModal')} open={dictModalOpen} onCancel={() => setDictModalOpen(false)} form={dictForm} onFinish={async (values) => {
           await systemService.createDictionary(values)
           message.success(t('common.createSuccess'))
           setDictModalOpen(false)
@@ -171,12 +173,9 @@ export default function SystemConfigPage() {
           <Form.Item name="code" label={t('common.code')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="name" label={t('common.name')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="description" label={t('common.description')}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('system.addDictionaryItem')} open={itemModalOpen} onCancel={() => setItemModalOpen(false)} footer={null}>
-        <Form form={itemForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('system.addDictionaryItem')} open={itemModalOpen} onCancel={() => setItemModalOpen(false)} form={itemForm} onFinish={async (values) => {
           if (!selectedDictId) return
           await systemService.addDictionaryItem(selectedDictId, values)
           message.success(t('common.createSuccess'))
@@ -186,9 +185,7 @@ export default function SystemConfigPage() {
           <Form.Item name="label" label={t('common.label')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="value" label={t('common.value')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="sortOrder" label={t('common.sortOrder')}><Input type="number" /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

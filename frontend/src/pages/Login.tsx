@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/useAuthStore'
 import { useRegionalStore } from '../store/useRegionalStore'
 import { useNavigate } from 'react-router-dom'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import { brand } from '../theme/brand'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -43,13 +44,19 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700 p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primaryLight} 45%, #3182ce 100%)`,
+      }}
+    >
       <Card
+        variant="borderless"
         style={{
           width: '100%',
           maxWidth: 400,
-          borderRadius: '12px',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+          borderRadius: 16,
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.25)',
           position: 'relative',
         }}
       >
@@ -104,8 +111,8 @@ export default function Login() {
               block
               data-testid="login-submit"
               style={{
-                background: '#1a365d',
-                borderColor: '#1a365d',
+                background: brand.primary,
+                borderColor: brand.primary,
               }}
             >
               {t('app.login')}

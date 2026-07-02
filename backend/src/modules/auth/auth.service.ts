@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { sanitizeUser } from '../../common/utils/sanitize-user';
@@ -6,7 +6,9 @@ import { AuditService } from '../audit/audit.service';
 import { TenantsService } from '../tenants/tenants.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 type RequestMeta = {
   ip?: string;
@@ -148,5 +150,23 @@ export class AuthService {
     const user = await this.userService.updatePreferences(userId, dto);
     const permissions = await this.userService.getUserPermissions(userId);
     return { ...user, permissions };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.userService.update(userId, dto);
+    const permissions = await this.userService.getUserPermissions(userId);
+    return { ...user, permissions };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const raw = await this.userService.findWithPassword(userId);
+    if (!raw) {
+      throw new UnauthorizedException('用户不存在');
+    }
+    const valid = await bcrypt.compare(dto.currentPassword, raw.password);
+    if (!valid) {
+      throw new BadRequestException('当前密码不正确');
+    }
+    await this.userService.update(userId, { password: dto.newPassword });
   }
 }

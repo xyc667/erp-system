@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Col, Input, Modal, Row, Space, Statistic, Table, Tabs, Tag, message } from 'antd'
+import { Button, Col, Input, Modal, Row, Space, Statistic, Table, Tabs, Tag, message } from 'antd'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
+import PageCard from '../../components/PageCard'
 import { CONTACT_RESULT_I18N, REVIEW_STATUS_I18N } from '../../config/contactResults'
 import { ContactReport, contactReportsService } from '../../services/contactReports'
 
@@ -152,6 +154,7 @@ export default function LeadReports() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Tabs
         items={[
           {
@@ -186,14 +189,14 @@ export default function LeadReports() {
             children: stats ? (
               <>
                 <Row gutter={16} className="mb-4">
-                  <Col xs={12} sm={6}><Card><Statistic title={t('leads.reportTotal')} value={stats.total} /></Card></Col>
-                  <Col xs={12} sm={6}><Card><Statistic title={t('leads.reviewPending')} value={stats.pending} /></Card></Col>
-                  <Col xs={12} sm={6}><Card><Statistic title={t('leads.connectedRate')} value={stats.connectedRate} suffix="%" /></Card></Col>
-                  <Col xs={12} sm={6}><Card><Statistic title={t('leads.interestedRate')} value={stats.interestedRate} suffix="%" /></Card></Col>
+                  <Col xs={12} sm={6}><PageCard><Statistic title={t('leads.reportTotal')} value={stats.total} /></PageCard></Col>
+                  <Col xs={12} sm={6}><PageCard><Statistic title={t('leads.reviewPending')} value={stats.pending} /></PageCard></Col>
+                  <Col xs={12} sm={6}><PageCard><Statistic title={t('leads.connectedRate')} value={stats.connectedRate} suffix="%" /></PageCard></Col>
+                  <Col xs={12} sm={6}><PageCard><Statistic title={t('leads.interestedRate')} value={stats.interestedRate} suffix="%" /></PageCard></Col>
                 </Row>
                 <Row gutter={16}>
                   <Col xs={24} md={12}>
-                    <Card title={t('leads.byResult')}>
+                    <PageCard title={t('leads.byResult')}>
                       <Table
                         size="small"
                         pagination={false}
@@ -204,10 +207,10 @@ export default function LeadReports() {
                           { title: t('leads.count'), dataIndex: 'count' },
                         ]}
                       />
-                    </Card>
+                    </PageCard>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Card title={t('leads.byReporter')}>
+                    <PageCard title={t('leads.byReporter')}>
                       <Table
                         size="small"
                         pagination={false}
@@ -218,7 +221,7 @@ export default function LeadReports() {
                           { title: t('leads.reportTotal'), dataIndex: 'count' },
                         ]}
                       />
-                    </Card>
+                    </PageCard>
                   </Col>
                 </Row>
               </>
@@ -226,6 +229,7 @@ export default function LeadReports() {
           },
         ]}
       />
+      </PageSection>
       <Modal
         title={reviewStatus === 'approved' ? t('leads.reviewApprove') : t('leads.reviewReject')}
         open={!!reviewTarget}

@@ -3,6 +3,7 @@ import { Tag, message } from 'antd'
 import { WarningOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { inventoryAlertsService, type StockAlert } from '../../services/inventoryAlerts'
 import ResponsiveTable from '../../components/ResponsiveTable'
 
@@ -43,8 +44,10 @@ export default function StockAlertPage() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <p className="text-gray-500 mb-4">{t('inventory.alertHint')}</p>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="productId" loading={loading} pagination={{ pageSize: 10 }} />
+    </PageSection>
     </div>
   )
 }

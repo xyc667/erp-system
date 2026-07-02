@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Input, InputNumber, Select, Tag, Progress, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, InputNumber, message, Modal, Progress, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, PlayCircleOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { projectsService, Project } from '../../services/projects'
@@ -90,6 +92,7 @@ export default function ProjectManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ tasks: [{}] })
@@ -103,6 +106,7 @@ export default function ProjectManagement() {
         expandable={{
           expandedRowRender: (record) => (
             <ResponsiveTable
+              embedded
               size="small"
               pagination={false}
               rowKey="id"
@@ -121,8 +125,8 @@ export default function ProjectManagement() {
           ),
         }}
       />
-      <Modal title={t('project.createProjectModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} width={640}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('project.createProjectModal')} open={modalOpen} onCancel={() => setModalOpen(false)} width={640} form={form} onFinish={async (values) => {
           await projectsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -155,9 +159,7 @@ export default function ProjectManagement() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

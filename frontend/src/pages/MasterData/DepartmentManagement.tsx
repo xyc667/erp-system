@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Input, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, message, Modal } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { departmentsService, Department } from '../../services/departments'
@@ -75,19 +77,18 @@ export default function DepartmentManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         setEditingId(null)
         form.resetFields()
         setModalOpen(true)
       }}>{t('hr.addDepartment')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={editingId ? t('hr.editDepartment') : t('hr.addDepartment')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      </PageSection>
+      <FormModal title={editingId ? t('hr.editDepartment') : t('hr.addDepartment')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={handleSubmit}>
           <Form.Item name="code" label={t('common.code')} rules={[{ required: true }]}><Input disabled={!!editingId} /></Form.Item>
           <Form.Item name="name" label={t('common.name')} rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

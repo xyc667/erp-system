@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Tabs, Button, Modal, Form, Input, Select, InputNumber, Tag, message, Space, DatePicker } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, DatePicker, Form, Input, InputNumber, message, Modal, Select, Space, Tabs, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { financeService, GlAccount, GlJournal } from '../../services/finance'
@@ -112,6 +114,7 @@ export default function GeneralLedger() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Tabs items={[
         {
           key: 'accounts',
@@ -143,6 +146,7 @@ export default function GeneralLedger() {
                 expandable={{
                   expandedRowRender: (record) => (
                     <ResponsiveTable
+                      embedded
                       size="small"
                       pagination={false}
                       rowKey="id"
@@ -162,8 +166,9 @@ export default function GeneralLedger() {
         },
       ]} />
 
-      <Modal title={t('finance.addAccountModal')} open={accountModalOpen} onCancel={() => setAccountModalOpen(false)} footer={null}>
-        <Form form={accountForm} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('finance.addAccountModal')} open={accountModalOpen} onCancel={() => setAccountModalOpen(false)} form={accountForm} onFinish={async (values) => {
           await financeService.createAccount(values)
           message.success(t('common.createSuccess'))
           setAccountModalOpen(false)
@@ -179,12 +184,9 @@ export default function GeneralLedger() {
             </Select>
           </Form.Item>
           <Form.Item name="description" label={t('common.description')}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('finance.createJournalModal')} open={journalModalOpen} onCancel={() => setJournalModalOpen(false)} footer={null} width={720}>
-        <Form form={journalForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('finance.createJournalModal')} open={journalModalOpen} onCancel={() => setJournalModalOpen(false)} width={720} form={journalForm} onFinish={async (values) => {
           await financeService.createJournal({
             date: values.date.format('YYYY-MM-DD'),
             type: values.type,
@@ -230,9 +232,7 @@ export default function GeneralLedger() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

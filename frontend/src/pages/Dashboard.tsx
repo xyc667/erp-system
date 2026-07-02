@@ -1,19 +1,23 @@
-import { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Spin } from 'antd'
+import { useState, useEffect, useMemo } from 'react'
+import { Row, Col } from 'antd'
 import {
   DollarOutlined,
   ShoppingCartOutlined,
   BuildOutlined,
-  UserOutlined,
 } from '@ant-design/icons'
 import ReactECharts from 'echarts-for-react'
 import { useTranslation } from 'react-i18next'
-import PageTitle from '../components/PageTitle'
 import { reportService, DashboardStats } from '../services/report'
 import { translateStatusChartData } from '../utils/i18nChart'
-
 import { useRegionalStore } from '../store/useRegionalStore'
 import { formatCurrency } from '../utils/format'
+import { brand, chartPalette, metricVariants } from '../theme/brand'
+import DashboardWelcome from '../components/dashboard/DashboardWelcome'
+import MetricCard from '../components/dashboard/MetricCard'
+import QuickActionsCard from '../components/dashboard/QuickActionsCard'
+import PageCard from '../components/PageCard'
+import PageState from '../components/PageState'
+import { DashboardSkeleton } from '../components/PageSkeleton'
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation()
@@ -22,111 +26,166 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    reportService.getDashboardStats()
+    reportService
+      .getDashboardStats()
       .then((res) => setData(res.data))
       .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [])
 
+  const salesChartOption = useMemo(() => {
+    if (!data) return {}
+    const amounts = data.charts.monthlySales.map((m) => m.amount)
+    return {
+      color: chartPalette,
+      grid: { left: 48, right: 24, top: 24, bottom: 32 },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(26, 54, 93, 0.92)',
+        borderWidth: 0,
+        textStyle: { color: '#fff' },
+      },
+      xAxis: {
+        type: 'category',
+        data: data.charts.monthlySales.map((m) => m.month),
+        axisLine: { lineStyle: { color: '#e2e8f0' } },
+        axisLabel: { color: brand.primaryMuted },
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } },
+        axisLabel: { color: brand.primaryMuted },
+      },
+      series: [
+        {
+          name: t('report.salesAmount'),
+          type: 'line',
+          data: amounts,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 8,
+          lineStyle: { width: 3, color: brand.primary },
+          itemStyle: { color: brand.primary, borderWidth: 2, borderColor: '#fff' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(26, 54, 93, 0.18)' },
+                { offset: 1, color: 'rgba(26, 54, 93, 0)' },
+              ],
+            },
+          },
+        },
+      ],
+    }
+  }, [data, t])
+
+  const statusChartOption = useMemo(() => {
+    if (!data) return {}
+    return {
+      color: chartPalette,
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(26, 54, 93, 0.92)',
+        borderWidth: 0,
+        textStyle: { color: '#fff' },
+      },
+      legend: {
+        orient: 'vertical',
+        right: 8,
+        top: 'center',
+        textStyle: { color: brand.primaryMuted, fontSize: 12 },
+      },
+      series: [
+        {
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['38%', '50%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 6,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: { show: false },
+          emphasis: {
+            label: { show: true, fontSize: 14, fontWeight: 'bold' },
+          },
+          data: translateStatusChartData(t, data.charts.salesByStatus),
+        },
+      ],
+    }
+  }, [data, t])
+
   if (loading) {
-    return <Spin size="large" className="flex justify-center items-center h-64" />
+    return <DashboardSkeleton />
   }
 
   if (!data) {
     return (
-      <div>
-        <PageTitle data-testid="dashboard-title" />
-        <div className="text-center mt-20 text-gray-500">{t('dashboard.noData')}</div>
-      </div>
+      <PageState variant="chart" description={t('dashboard.noData')} />
     )
   }
 
-  const { stats, charts } = data
-
-  const salesChartOption = {
-    title: { text: t('dashboard.salesTrend'), left: 'center' },
-    tooltip: { trigger: 'axis' },
-    xAxis: {
-      type: 'category',
-      data: charts.monthlySales.map((m) => m.month),
-    },
-    yAxis: { type: 'value' },
-    series: [{
-      name: t('report.salesAmount'),
-      type: 'line',
-      data: charts.monthlySales.map((m) => m.amount),
-      smooth: true,
-    }],
-  }
-
-  const statusChartOption = {
-    title: { text: t('dashboard.orderStatus'), left: 'center' },
-    tooltip: { trigger: 'item' },
-    series: [{
-      type: 'pie',
-      radius: '50%',
-      data: translateStatusChartData(t, charts.salesByStatus),
-    }],
-  }
+  const { stats } = data
 
   return (
-    <div>
-      <PageTitle data-testid="dashboard-title" />
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={12} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title={t('dashboard.salesTotal')}
-              value={stats.salesTotal}
-              prefix={<DollarOutlined />}
-              formatter={(v) => formatCurrency(Number(v), currency, i18n.language)}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
+    <div data-testid="dashboard-page">
+      <DashboardWelcome userCount={stats.userCount} />
+      <Row gutter={[16, 16]} className="mb-4">
+        <Col xs={24} sm={12} lg={6}>
+          <MetricCard
+            title={t('dashboard.salesTotal')}
+            value={formatCurrency(stats.salesTotal, currency, i18n.language)}
+            icon={<DollarOutlined />}
+            {...metricVariants.sales}
+          />
         </Col>
-        <Col xs={12} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title={t('dashboard.purchaseOrders')}
-              value={stats.purchaseOrderCount}
-              prefix={<ShoppingCartOutlined />}
-              suffix={t('units.order')}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
+        <Col xs={24} sm={12} lg={6}>
+          <MetricCard
+            title={t('dashboard.purchaseOrders')}
+            value={stats.purchaseOrderCount}
+            suffix={t('units.order')}
+            icon={<ShoppingCartOutlined />}
+            {...metricVariants.purchase}
+          />
         </Col>
-        <Col xs={12} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title={t('dashboard.inventoryQty')}
-              value={stats.inventoryQuantity}
-              prefix={<BuildOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
+        <Col xs={24} sm={12} lg={6}>
+          <MetricCard
+            title={t('dashboard.inventoryQty')}
+            value={stats.inventoryQuantity.toLocaleString(i18n.language)}
+            icon={<BuildOutlined />}
+            {...metricVariants.inventory}
+          />
         </Col>
-        <Col xs={12} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title={t('dashboard.users')}
-              value={stats.userCount}
-              prefix={<UserOutlined />}
-              suffix={t('units.person')}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
+        <Col xs={24} sm={12} lg={6}>
+          <QuickActionsCard />
         </Col>
       </Row>
       <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
-          <Card title={t('dashboard.salesTrend')}>
-            <ReactECharts option={salesChartOption} style={{ height: 300 }} />
-          </Card>
+        <Col xs={24} lg={14}>
+          <PageCard
+            title={
+              <span style={{ fontWeight: 600, color: brand.primary }}>{t('dashboard.salesTrend')}</span>
+            }
+            styles={{ body: { paddingTop: 8 } }}
+          >
+            <ReactECharts option={salesChartOption} style={{ height: 320 }} />
+          </PageCard>
         </Col>
-        <Col xs={24} lg={12}>
-          <Card title={t('dashboard.orderStatus')}>
-            <ReactECharts option={statusChartOption} style={{ height: 300 }} />
-          </Card>
+        <Col xs={24} lg={10}>
+          <PageCard
+            title={
+              <span style={{ fontWeight: 600, color: brand.primary }}>{t('dashboard.orderStatus')}</span>
+            }
+            styles={{ body: { paddingTop: 8 } }}
+          >
+            <ReactECharts option={statusChartOption} style={{ height: 320 }} />
+          </PageCard>
         </Col>
       </Row>
     </div>

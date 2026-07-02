@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, Input, InputNumber, DatePicker, Tag, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, DatePicker, Form, Input, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { productionPlansService, ProductionPlan } from '../../services/productionPlans'
@@ -86,13 +88,14 @@ export default function ProductionPlanManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('production.createPlan')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('production.createPlanModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('production.createPlanModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await productionPlansService.create({
             name: values.name,
             productId: values.productId,
@@ -115,9 +118,7 @@ export default function ProductionPlanManagement() {
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name="endDate" label={t('common.endDate')}><DatePicker style={{ width: '100%' }} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

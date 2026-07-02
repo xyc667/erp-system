@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, InputNumber, Input, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, InputNumber, message, Modal, Select, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { qualityInspectionsService, QualityInspection } from '../../services/qualityInspections'
@@ -72,13 +74,14 @@ export default function QualityManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('production.createQuality')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('production.createQualityModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('production.createQualityModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await qualityInspectionsService.create(values)
           message.success(t('production.qualitySaved'))
           setModalOpen(false)
@@ -101,9 +104,7 @@ export default function QualityManagement() {
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
           <Form.Item name="result" label={t('common.inspectionNote')}><Input.TextArea /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.submit')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

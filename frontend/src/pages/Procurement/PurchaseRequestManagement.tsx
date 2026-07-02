@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Select, Input, InputNumber, Tag, message, Space } from 'antd'
+import { Button, Form, Input, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, SwapOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { purchaseRequestsService, PurchaseRequest } from '../../services/purchaseRequests'
 import { productsService, Product } from '../../services/products'
 import { vendorsService, Vendor } from '../../services/vendors'
@@ -96,6 +98,7 @@ export default function PurchaseRequestManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ items: [{}] })
@@ -103,8 +106,9 @@ export default function PurchaseRequestManagement() {
       }}>{t('procurement.createRequest')}</Button>
       <ResponsiveTable columns={columns} dataSource={requests} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
 
-      <Modal title={t('procurement.createRequestModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} width={720}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('procurement.createRequestModal')} open={modalOpen} onCancel={() => setModalOpen(false)} width={720} form={form} onFinish={async (values) => {
           await purchaseRequestsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -135,12 +139,9 @@ export default function PurchaseRequestManagement() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.submit')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('procurement.convertModal')} open={convertModalOpen} onCancel={() => setConvertModalOpen(false)} footer={null}>
-        <Form form={convertForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('procurement.convertModal')} open={convertModalOpen} onCancel={() => setConvertModalOpen(false)} form={convertForm} onFinish={async (values) => {
           if (!convertId) return
           await purchaseRequestsService.convert(convertId, values.vendorId)
           message.success(t('common.convertPoSuccess'))
@@ -152,9 +153,7 @@ export default function PurchaseRequestManagement() {
               {vendors.map((v) => <Select.Option key={v.id} value={v.id}>{v.name}</Select.Option>)}
             </Select>
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.confirmConvert')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

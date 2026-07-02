@@ -11,4 +11,9 @@ export class DashboardController {
   getStats() {
     return this.reportService.getOverview();
   }
+
+  @Get('feed')
+  getFeed() {
+    return this.reportService.getBiFeed();
+  }
 }

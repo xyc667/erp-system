@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Select, InputNumber, DatePicker, Tag, message, Space } from 'antd'
+import { Button, DatePicker, Form, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, SwapOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { salesQuotesService, SalesQuote } from '../../services/salesQuotes'
 import { customersService, Customer } from '../../services/customers'
 import { productsService, Product } from '../../services/products'
@@ -99,6 +101,7 @@ export default function SalesQuoteManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ items: [{}] })
@@ -106,8 +109,9 @@ export default function SalesQuoteManagement() {
       }}>{t('sales.createQuote')}</Button>
       <ResponsiveTable columns={columns} dataSource={quotes} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
 
-      <Modal title={t('sales.createQuoteModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} width={720}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('sales.createQuoteModal')} open={modalOpen} onCancel={() => setModalOpen(false)} width={720} form={form} onFinish={async (values) => {
           await salesQuotesService.create({
             ...values,
             validUntil: values.validUntil?.format('YYYY-MM-DD'),
@@ -145,9 +149,7 @@ export default function SalesQuoteManagement() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, InputNumber, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, InputNumber, Tag, message } from 'antd'
+import FormModal from '../../components/FormModal'
 import { DollarOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { payablesService, Payable } from '../../services/payables'
@@ -71,10 +73,11 @@ export default function PayableManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <p className="text-gray-500 mb-4">{t('finance.payableHint')}</p>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('finance.registerPayment')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('finance.registerPayment')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           if (!selectedId) return
           await payablesService.recordPayment(selectedId, values.amount)
           message.success(t('finance.paymentSuccess'))
@@ -84,9 +87,7 @@ export default function PayableManagement() {
           <Form.Item name="amount" label={t('common.paymentAmount')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} min={0.01} />
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.confirm')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

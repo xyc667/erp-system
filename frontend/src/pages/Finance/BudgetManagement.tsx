@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Input, InputNumber, Select, Tag, Progress, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, InputNumber, message, Modal, Progress, Select, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { budgetsService, Budget } from '../../services/budgets'
@@ -89,14 +91,15 @@ export default function BudgetManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ year: new Date().getFullYear(), category: 'procurement' })
         setModalOpen(true)
       }}>{t('finance.addBudget')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('finance.addBudgetModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('finance.addBudgetModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await budgetsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -122,9 +125,7 @@ export default function BudgetManagement() {
           <Form.Item name="totalAmount" label={t('common.budgetTotal')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

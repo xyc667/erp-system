@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
+import FormModal from '../../components/FormModal'
+import PageSection from '../../components/PageSection'
 import { Button, Modal, Form, Input, Select, Switch, message } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -151,6 +153,7 @@ export default function UserManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button
         icon={<PlusOutlined />}
         onClick={handleAdd}
@@ -165,17 +168,15 @@ export default function UserManagement() {
         loading={loading}
         pagination={{ pageSize: 10 }}
       />
-      <Modal
+      </PageSection>
+      <FormModal
         title={editingId ? t('system.editUser') : t('system.addUser')}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
-        footer={null}
+        form={form}
+        onFinish={handleSubmit}
+        okText={editingId ? t('common.save') : t('common.create')}
       >
-        <Form
-          form={form}
-          onFinish={handleSubmit}
-          layout="vertical"
-        >
           <Form.Item
             name="username"
             label={t('app.username')}
@@ -229,16 +230,7 @@ export default function UserManagement() {
           <Form.Item name="status" label={t('common.status')} valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {editingId ? t('common.save') : t('common.create')}
-            </Button>
-            <Button onClick={() => setModalVisible(false)} className="ml-2">
-              {t('common.cancel')}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

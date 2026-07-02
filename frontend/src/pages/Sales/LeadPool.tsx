@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button, Form, Input, Select, Space, Tag, message } from 'antd'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection, { PageToolbar } from '../../components/PageSection'
+import PageFilterForm from '../../components/PageFilterForm'
 import ResponsiveTable from '../../components/ResponsiveTable'
 import { Lead, leadsService } from '../../services/leads'
 import { LEAD_CATEGORIES, LEAD_DISTRICTS } from '../../config/leadFilters'
@@ -88,7 +90,8 @@ export default function LeadPool() {
   return (
     <div>
       <PageTitle />
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <PageSection>
+      <PageToolbar>
         <Tag color="blue">{t('leads.quotaHint', { claimed: quota.claimed, limit: quota.limit })}</Tag>
         <Space>
           <Button disabled={selected.length === 0} onClick={handleBatchClaim}>
@@ -96,8 +99,8 @@ export default function LeadPool() {
           </Button>
           <Button onClick={() => fetchData(page)}>{t('common.refresh')}</Button>
         </Space>
-      </div>
-      <Form form={form} layout="inline" className="mb-4" onFinish={() => fetchData(1)}>
+      </PageToolbar>
+      <PageFilterForm form={form} onFinish={() => fetchData(1)}>
         <Form.Item name="district">
           <Select allowClear placeholder={t('leads.district')} style={{ width: 130 }} options={LEAD_DISTRICTS.map((d) => ({ value: d, label: d }))} />
         </Form.Item>
@@ -116,7 +119,7 @@ export default function LeadPool() {
         <Form.Item>
           <Button type="primary" htmlType="submit">{t('common.search')}</Button>
         </Form.Item>
-      </Form>
+      </PageFilterForm>
       <ResponsiveTable
         rowKey="id"
         loading={loading}
@@ -133,6 +136,7 @@ export default function LeadPool() {
           onChange: (p) => fetchData(p),
         }}
       />
+      </PageSection>
     </div>
   )
 }

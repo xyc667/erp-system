@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Select, Input, InputNumber, Tag, message, Space } from 'antd'
+import { Button, Form, Input, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
+import PageDrawer from '../../components/PageDrawer'
 import { stocktakesService, Stocktake } from '../../services/stocktakes'
 import { warehousesService, Warehouse } from '../../services/warehouses'
 import ResponsiveTable from '../../components/ResponsiveTable'
@@ -113,14 +116,16 @@ export default function StocktakeManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('inventory.createStocktake')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
 
-      <Modal title={t('inventory.createStocktakeModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('inventory.createStocktakeModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await stocktakesService.create(values)
           message.success(t('inventory.stocktakeCreated'))
           setModalOpen(false)
@@ -132,19 +137,16 @@ export default function StocktakeManagement() {
             </Select>
           </Form.Item>
           <Form.Item name="remark" label={t('inventory.remark')}><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('inventory.startStocktake')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal
+      <PageDrawer
         title={t('inventory.stocktakeDetail', { no: current?.stocktakeNo ?? '' })}
         open={detailOpen}
-        onCancel={() => setDetailOpen(false)}
-        footer={null}
+        onClose={() => setDetailOpen(false)}
         width={720}
       >
-        <ResponsiveTable columns={itemColumns} dataSource={current?.items ?? []} rowKey="id" pagination={false} />
-      </Modal>
+        <ResponsiveTable embedded columns={itemColumns} dataSource={current?.items ?? []} rowKey="id" pagination={false} />
+      </PageDrawer>
     </div>
   )
 }

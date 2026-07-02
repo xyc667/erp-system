@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Tabs, Form, Input, Button, Descriptions, Tag, message, Modal, Select } from 'antd'
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
+import { Tabs, Form, Input, Button, Descriptions, Tag, message, Select } from 'antd'
+import FormModal from '../../components/FormModal'
+import { PlusOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import ResponsiveTable from '../../components/ResponsiveTable'
 import { traceService, SerialNumber } from '../../services/trace'
 import { blockchainService, BlockchainStatus, VerifyResult } from '../../services/blockchain'
@@ -76,6 +78,7 @@ export default function InventoryTrace() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       {chainStatus && (
         <Descriptions bordered size="small" className="mb-4" column={{ xs: 1, sm: 3 }}>
           <Descriptions.Item label={t('blockchain.rpcEnabled')}>
@@ -97,9 +100,6 @@ export default function InventoryTrace() {
               <Form form={batchForm} layout="inline" className="mb-4" onFinish={(v) => searchBatch(v.batchNo)}>
                 <Form.Item name="batchNo" rules={[{ required: true }]}>
                   <Input placeholder={t('inventory.batchPlaceholder')} style={{ width: 240 }} />
-                </Form.Item>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>{t('common.search')}</Button>
                 </Form.Item>
               </Form>
               {batchResult && (
@@ -202,9 +202,6 @@ export default function InventoryTrace() {
                   <Form.Item name="serialNo" rules={[{ required: true }]}>
                     <Input placeholder={t('inventory.serialPlaceholder')} style={{ width: 240 }} />
                   </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>{t('common.search')}</Button>
-                  </Form.Item>
                 </Form>
                 <Button icon={<PlusOutlined />} onClick={openRegister}>{t('inventory.registerSerial')}</Button>
                 <Button onClick={loadSerials}>{t('common.refresh')}</Button>
@@ -265,8 +262,8 @@ export default function InventoryTrace() {
           ),
         },
       ]} />
-      <Modal title={t('inventory.registerSerialModal')} open={registerOpen} onCancel={() => setRegisterOpen(false)} footer={null}>
-        <Form form={registerForm} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('inventory.registerSerialModal')} open={registerOpen} onCancel={() => setRegisterOpen(false)} form={registerForm} onFinish={async (values) => {
           await traceService.registerSerial(values)
           message.success(t('common.registerSuccess'))
           setRegisterOpen(false)
@@ -284,9 +281,7 @@ export default function InventoryTrace() {
               {warehouses.map((w) => <Select.Option key={w.id} value={w.id}>{w.name}</Select.Option>)}
             </Select>
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

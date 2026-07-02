@@ -1,9 +1,12 @@
+import FormModal from '../../components/FormModal'
+import FormDrawer from '../../components/FormDrawer'
 import { useCallback, useEffect, useState } from 'react'
-import { Button, DatePicker, Drawer, Form, Input, Modal, Select, Space, Tag, Timeline, Upload, message } from 'antd'
+import { Button, DatePicker, Form, Input, Modal, Select, Space, Tag, Timeline, Upload, message } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import ResponsiveTable from '../../components/ResponsiveTable'
 import { CONTACT_RESULT_I18N, CONTACT_RESULTS, REVIEW_STATUS_I18N } from '../../config/contactResults'
 import { contactReportsService } from '../../services/contactReports'
@@ -202,6 +205,7 @@ export default function MyLeads() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <ResponsiveTable
         rowKey="id"
         loading={loading}
@@ -209,89 +213,90 @@ export default function MyLeads() {
         dataSource={data}
         pagination={{ current: page, total, pageSize: 20, onChange: (p) => fetchData(p) }}
       />
+      </PageSection>
 
-      <Drawer
+      <FormDrawer
         title={drawerMode === 'report' ? t('leads.contactReport') : t('leads.follow')}
         open={!!activeLead && !!drawerMode && !convertOpen}
         onClose={closeDrawer}
-        width={520}
+        form={drawerMode === 'report' ? reportForm : followForm}
+        onFinish={drawerMode === 'report' ? submitReport : submitFollow}
+        okText={drawerMode === 'report' ? t('leads.submitReport') : t('common.save')}
+        blockSubmit={drawerMode === 'report'}
+        subtitle={
+          activeLead
+            ? drawerMode === 'report'
+              ? `${activeLead.name} · ${activeLead.phone || '—'}`
+              : activeLead.name
+            : undefined
+        }
+        footerExtra={activeLead ? renderTimeline(activeLead, t, resultLabel) : null}
       >
-        {activeLead && drawerMode === 'follow' && (
+        {drawerMode === 'follow' && (
           <>
-            <p className="font-medium mb-2">{activeLead.name}</p>
-            <Form form={followForm} layout="vertical" onFinish={submitFollow}>
-              <Form.Item name="type" label={t('leads.followType')} rules={[{ required: true }]}>
-                <Select options={[
-                  { value: 'call', label: t('leads.followCall') },
-                  { value: 'visit', label: t('leads.followVisit') },
-                  { value: 'wechat', label: t('leads.followWechat') },
-                  { value: 'other', label: t('leads.followOther') },
-                ]} />
-              </Form.Item>
-              <Form.Item name="content" label={t('leads.followContent')} rules={[{ required: true }]}>
-                <Input.TextArea rows={4} />
-              </Form.Item>
-              <Form.Item name="quality" label={t('leads.qualityMark')}>
-                <Select allowClear options={[
-                  { value: 'valid', label: t('leads.qualityValid') },
-                  { value: 'empty_phone', label: t('leads.qualityEmpty') },
-                  { value: 'closed', label: t('leads.qualityClosed') },
-                ]} />
-              </Form.Item>
-              <Button type="primary" htmlType="submit">{t('common.save')}</Button>
-            </Form>
-            {renderTimeline(activeLead, t, resultLabel)}
+            <Form.Item name="type" label={t('leads.followType')} rules={[{ required: true }]}>
+              <Select options={[
+                { value: 'call', label: t('leads.followCall') },
+                { value: 'visit', label: t('leads.followVisit') },
+                { value: 'wechat', label: t('leads.followWechat') },
+                { value: 'other', label: t('leads.followOther') },
+              ]} />
+            </Form.Item>
+            <Form.Item name="content" label={t('leads.followContent')} rules={[{ required: true }]}>
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item name="quality" label={t('leads.qualityMark')}>
+              <Select allowClear options={[
+                { value: 'valid', label: t('leads.qualityValid') },
+                { value: 'empty_phone', label: t('leads.qualityEmpty') },
+                { value: 'closed', label: t('leads.qualityClosed') },
+              ]} />
+            </Form.Item>
           </>
         )}
 
-        {activeLead && drawerMode === 'report' && (
+        {drawerMode === 'report' && (
           <>
-            <p className="font-medium mb-2">{activeLead.name} · {activeLead.phone || '—'}</p>
-            <Form form={reportForm} layout="vertical" onFinish={submitReport}>
-              <Form.Item name="type" label={t('leads.followType')} rules={[{ required: true }]}>
-                <Select options={[
-                  { value: 'call', label: t('leads.followCall') },
-                  { value: 'visit', label: t('leads.followVisit') },
-                  { value: 'wechat', label: t('leads.followWechat') },
-                  { value: 'other', label: t('leads.followOther') },
-                ]} />
+            <Form.Item name="type" label={t('leads.followType')} rules={[{ required: true }]}>
+              <Select options={[
+                { value: 'call', label: t('leads.followCall') },
+                { value: 'visit', label: t('leads.followVisit') },
+                { value: 'wechat', label: t('leads.followWechat') },
+                { value: 'other', label: t('leads.followOther') },
+              ]} />
+            </Form.Item>
+            <Form.Item name="result" label={t('leads.contactResult')} rules={[{ required: true }]}>
+              <Select options={CONTACT_RESULTS.map((r) => ({
+                value: r,
+                label: t(`leads.${CONTACT_RESULT_I18N[r]}`),
+              }))} />
+            </Form.Item>
+            <Form.Item name="content" label={t('leads.reportSummary')} rules={[{ required: true }]}>
+              <Input.TextArea rows={4} placeholder={t('leads.reportSummaryHint')} />
+            </Form.Item>
+            {reportResult === 'schedule_next' && (
+              <Form.Item name="nextActionAt" label={t('leads.nextContactAt')} rules={[{ required: true }]}>
+                <DatePicker showTime className="w-full" />
               </Form.Item>
-              <Form.Item name="result" label={t('leads.contactResult')} rules={[{ required: true }]}>
-                <Select options={CONTACT_RESULTS.map((r) => ({
-                  value: r,
-                  label: t(`leads.${CONTACT_RESULT_I18N[r]}`),
-                }))} />
-              </Form.Item>
-              <Form.Item name="content" label={t('leads.reportSummary')} rules={[{ required: true }]}>
-                <Input.TextArea rows={4} placeholder={t('leads.reportSummaryHint')} />
-              </Form.Item>
-              {reportResult === 'schedule_next' && (
-                <Form.Item name="nextActionAt" label={t('leads.nextContactAt')} rules={[{ required: true }]}>
-                  <DatePicker showTime className="w-full" />
-                </Form.Item>
-              )}
-              <Form.Item label={t('leads.recordingOptional')}>
-                <Upload beforeUpload={handleRecordingUpload} maxCount={1} accept="audio/*,.mp3,.m4a,.wav">
-                  <Button icon={<UploadOutlined />} loading={uploading}>{t('leads.uploadRecording')}</Button>
-                </Upload>
-                {recordingName && <div className="text-sm text-gray-500 mt-1">{recordingName}</div>}
-              </Form.Item>
-              <Form.Item name="quality" label={t('leads.qualityMark')}>
-                <Select allowClear options={[
-                  { value: 'valid', label: t('leads.qualityValid') },
-                  { value: 'empty_phone', label: t('leads.qualityEmpty') },
-                  { value: 'closed', label: t('leads.qualityClosed') },
-                ]} />
-              </Form.Item>
-              <Button type="primary" htmlType="submit" block>{t('leads.submitReport')}</Button>
-            </Form>
-            {renderTimeline(activeLead, t, resultLabel)}
+            )}
+            <Form.Item label={t('leads.recordingOptional')}>
+              <Upload beforeUpload={handleRecordingUpload} maxCount={1} accept="audio/*,.mp3,.m4a,.wav">
+                <Button icon={<UploadOutlined />} loading={uploading}>{t('leads.uploadRecording')}</Button>
+              </Upload>
+              {recordingName && <div className="text-sm text-gray-500 mt-1">{recordingName}</div>}
+            </Form.Item>
+            <Form.Item name="quality" label={t('leads.qualityMark')}>
+              <Select allowClear options={[
+                { value: 'valid', label: t('leads.qualityValid') },
+                { value: 'empty_phone', label: t('leads.qualityEmpty') },
+                { value: 'closed', label: t('leads.qualityClosed') },
+              ]} />
+            </Form.Item>
           </>
         )}
-      </Drawer>
+      </FormDrawer>
 
-      <Modal title={t('leads.convert')} open={convertOpen} onCancel={() => setConvertOpen(false)} footer={null}>
-        <Form form={convertForm} layout="vertical" onFinish={submitConvert}>
+      <FormModal title={t('leads.convert')} open={convertOpen} onCancel={() => setConvertOpen(false)} form={convertForm} onFinish={submitConvert} okText={t('leads.convertSubmit')}>
           <Form.Item name="name" label={t('common.name')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
@@ -301,9 +306,7 @@ export default function MyLeads() {
           <Form.Item name="address" label={t('common.address')}>
             <Input />
           </Form.Item>
-          <Button type="primary" htmlType="submit" block>{t('leads.convertSubmit')}</Button>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

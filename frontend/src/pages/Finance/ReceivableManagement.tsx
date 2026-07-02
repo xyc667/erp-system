@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, InputNumber, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, InputNumber, Tag, message } from 'antd'
+import FormModal from '../../components/FormModal'
 import { DollarOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { receivablesService, Receivable } from '../../services/receivables'
@@ -71,10 +73,11 @@ export default function ReceivableManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <p className="text-gray-500 mb-4">{t('finance.receivableHint')}</p>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('finance.registerReceipt')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('finance.registerReceipt')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           if (!selectedId) return
           await receivablesService.recordReceipt(selectedId, values.amount)
           message.success(t('finance.receiptSuccess'))
@@ -84,9 +87,7 @@ export default function ReceivableManagement() {
           <Form.Item name="amount" label={t('common.receiptAmount')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} min={0.01} />
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.confirm')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

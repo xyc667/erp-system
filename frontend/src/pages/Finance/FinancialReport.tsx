@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Card, Row, Col, Statistic, Spin } from 'antd'
+import PageCard from '../../components/PageCard'
+import PageState from '../../components/PageState'
+import { ReportSkeleton } from '../../components/PageSkeleton'
+import { Row, Col, Statistic } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { reportService, FinanceReport } from '../../services/report'
 import ResponsiveTable from '../../components/ResponsiveTable'
@@ -17,8 +20,8 @@ export default function FinancialReport() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <Spin size="large" className="flex justify-center mt-20" />
-  if (!data) return <div className="text-center mt-20 text-gray-500">{t('common.noFinanceData')}</div>
+  if (loading) return <ReportSkeleton statCount={4} />
+  if (!data) return <PageState variant="chart" description={t('common.noFinanceData')} />
 
   const trialColumns = [
     { title: t('common.accountCode'), dataIndex: 'code', key: 'code' },
@@ -39,19 +42,19 @@ export default function FinancialReport() {
       <PageTitle />
       <Row gutter={16} className="mb-6">
         <Col span={6}>
-          <Card><Statistic title={t('finance.arOutstanding')} value={data.receivables.outstanding} suffix={t('units.currency')} /></Card>
+          <PageCard><Statistic title={t('finance.arOutstanding')} value={data.receivables.outstanding} suffix={t('units.currency')} /></PageCard>
         </Col>
         <Col span={6}>
-          <Card><Statistic title={t('finance.apOutstanding')} value={data.payables.outstanding} suffix={t('units.currency')} /></Card>
+          <PageCard><Statistic title={t('finance.apOutstanding')} value={data.payables.outstanding} suffix={t('units.currency')} /></PageCard>
         </Col>
         <Col span={6}>
-          <Card><Statistic title={t('finance.assetNetValue')} value={data.fixedAssets.netValue} suffix={t('units.currency')} /></Card>
+          <PageCard><Statistic title={t('finance.assetNetValue')} value={data.fixedAssets.netValue} suffix={t('units.currency')} /></PageCard>
         </Col>
         <Col span={6}>
-          <Card><Statistic title={t('finance.activeAssetCount')} value={data.fixedAssets.count} suffix={t('common.itemsUnit')} /></Card>
+          <PageCard><Statistic title={t('finance.activeAssetCount')} value={data.fixedAssets.count} suffix={t('common.itemsUnit')} /></PageCard>
         </Col>
       </Row>
-      <Card title={t('finance.trialBalance')} className="mb-6">
+      <PageCard title={t('finance.trialBalance')} className="mb-6">
         <ResponsiveTable
           columns={trialColumns}
           dataSource={data.trialBalance}
@@ -59,8 +62,8 @@ export default function FinancialReport() {
           pagination={{ pageSize: 10 }}
           size="small"
         />
-      </Card>
-      <Card title={t('finance.summaryByType')}>
+      </PageCard>
+      <PageCard title={t('finance.summaryByType')}>
         <Row gutter={16}>
           {Object.entries(data.summaryByType).map(([type, balance]) => (
             <Col span={4} key={type}>
@@ -68,7 +71,7 @@ export default function FinancialReport() {
             </Col>
           ))}
         </Row>
-      </Card>
+      </PageCard>
     </div>
   )
 }

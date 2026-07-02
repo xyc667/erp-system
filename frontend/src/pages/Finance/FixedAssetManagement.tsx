@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Input, InputNumber, DatePicker, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, DatePicker, Form, Input, InputNumber, message, Modal, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CalculatorOutlined, StopOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
@@ -86,14 +88,15 @@ export default function FixedAssetManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ startDate: dayjs(), usefulLifeMonths: 60 })
         setModalOpen(true)
       }}>{t('finance.addAsset')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('finance.addAssetModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('finance.addAssetModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await fixedAssetsService.create({
             ...values,
             startDate: values.startDate.format('YYYY-MM-DD'),
@@ -114,9 +117,7 @@ export default function FixedAssetManagement() {
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name="location" label={t('common.location')}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

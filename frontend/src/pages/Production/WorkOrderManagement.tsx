@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, InputNumber, Tag, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, InputNumber, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import {
   PlusOutlined, PlayCircleOutlined, CheckOutlined, DeleteOutlined, SendOutlined,
 } from '@ant-design/icons'
@@ -113,6 +115,7 @@ export default function WorkOrderManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
@@ -125,6 +128,7 @@ export default function WorkOrderManagement() {
         expandable={{
           expandedRowRender: (record) => (
             <ResponsiveTable
+              embedded
               size="small"
               pagination={false}
               rowKey="id"
@@ -139,8 +143,9 @@ export default function WorkOrderManagement() {
         }}
       />
 
-      <Modal title={t('production.createWorkOrderModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('production.createWorkOrderModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await workOrdersService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -158,12 +163,9 @@ export default function WorkOrderManagement() {
           <Form.Item name="plannedQty" label={t('common.plannedQty')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} min={1} />
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('production.completeWorkOrderModal')} open={completeModalOpen} onCancel={() => setCompleteModalOpen(false)} footer={null}>
-        <Form form={completeForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('production.completeWorkOrderModal')} open={completeModalOpen} onCancel={() => setCompleteModalOpen(false)} form={completeForm} onFinish={async (values) => {
           if (!completeOrderId) return
           await workOrdersService.complete(completeOrderId, values.warehouseId)
           message.success(t('production.completeSuccess'))
@@ -173,9 +175,7 @@ export default function WorkOrderManagement() {
           <Form.Item name="warehouseId" label={t('common.receiveWarehouse')} rules={[{ required: true }]}>
             <Select>{warehouses.map((w) => <Select.Option key={w.id} value={w.id}>{w.name}</Select.Option>)}</Select>
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('production.confirmComplete')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

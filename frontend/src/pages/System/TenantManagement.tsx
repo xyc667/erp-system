@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Input, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, message } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { tenantsService, Tenant } from '../../services/tenants'
@@ -30,6 +32,7 @@ export default function TenantManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <p className="text-gray-500 mb-4">{t('system.tenantHint')}</p>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
@@ -45,8 +48,8 @@ export default function TenantManagement() {
         loading={loading}
         pagination={{ pageSize: 10 }}
       />
-      <Modal title={t('system.addTenantModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('system.addTenantModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await tenantsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -56,9 +59,7 @@ export default function TenantManagement() {
             <Input placeholder={t('system.tenantCodePlaceholder')} />
           </Form.Item>
           <Form.Item name="name" label={t('common.tenantName')} rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

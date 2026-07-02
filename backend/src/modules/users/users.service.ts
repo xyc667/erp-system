@@ -28,6 +28,13 @@ export class UsersService {
     return user ? sanitizeUser(user) : null;
   }
 
+  async findWithPassword(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+  }
+
   async findAll() {
     const users = await this.prisma.user.findMany({
       where: this.tenant.where(),

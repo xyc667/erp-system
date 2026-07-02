@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Tabs, Tag, Alert, Spin, message, Button, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Tabs, Tag, Alert, message, Button, Space } from 'antd'
 import { useTranslation } from 'react-i18next'
 import ResponsiveTable from '../../components/ResponsiveTable'
+import { TablePageSkeleton } from '../../components/PageSkeleton'
 import {
   intelligenceService,
   ReplenishmentSuggestion,
@@ -87,12 +89,13 @@ export default function IntelligenceCenter() {
   ]
 
   if (loading) {
-    return <Spin size="large" className="flex justify-center mt-20" />
+    return <TablePageSkeleton rows={6} />
   }
 
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Tabs
         items={[
           {
@@ -117,7 +120,6 @@ export default function IntelligenceCenter() {
                   dataSource={replenishment}
                   rowKey="productId"
                   pagination={{ pageSize: 10 }}
-                  locale={{ emptyText: t('dashboard.noData') }}
                 />
               </>
             ),
@@ -140,6 +142,7 @@ export default function IntelligenceCenter() {
           },
         ]}
       />
+    </PageSection>
     </div>
   )
 }

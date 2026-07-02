@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
+import PageFilterForm from '../../components/PageFilterForm'
 import { Form, Select, Input, DatePicker, Button, Tag, Space } from 'antd'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
@@ -87,7 +89,8 @@ export default function AuditLogManagement() {
   return (
     <div>
       <PageTitle />
-      <Form form={form} layout="inline" className="mb-4" onFinish={() => {
+      <PageSection>
+      <PageFilterForm form={form} onFinish={() => {
         setPage(1)
         fetchData(1, pageSize)
       }}>
@@ -123,7 +126,7 @@ export default function AuditLogManagement() {
             }}>{t('common.reset')}</Button>
           </Space>
         </Form.Item>
-      </Form>
+      </PageFilterForm>
       <ResponsiveTable
         columns={columns}
         dataSource={data}
@@ -142,6 +145,7 @@ export default function AuditLogManagement() {
         }}
         scroll={{ x: 1100 }}
       />
+    </PageSection>
     </div>
   )
 }

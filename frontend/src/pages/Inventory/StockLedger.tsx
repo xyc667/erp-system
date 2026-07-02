@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Select, InputNumber, Input, message } from 'antd'
+import { Button, Form, Input, InputNumber, message, Modal, Select } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { inventoryService, StockRecord } from '../../services/inventory'
 import { productsService, Product } from '../../services/products'
 import { warehousesService, Warehouse } from '../../services/warehouses'
@@ -65,13 +67,14 @@ export default function StockLedger() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('inventory.entryStock')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('inventory.entryStockModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('inventory.entryStockModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           const product = products.find((p) => p.id === values.productId)
           if (!product) return
           await inventoryService.createStock({
@@ -101,9 +104,7 @@ export default function StockLedger() {
           <Form.Item name="batchNo" label={t('common.batchNo')}>
             <Input placeholder={t('common.batchOptional')} />
           </Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

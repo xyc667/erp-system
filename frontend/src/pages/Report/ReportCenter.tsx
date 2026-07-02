@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Card, Row, Col, Statistic, Spin } from 'antd'
+import PageCard from '../../components/PageCard'
+import PageState from '../../components/PageState'
+import { ReportSkeleton } from '../../components/PageSkeleton'
+import { Row, Col, Statistic } from 'antd'
 import {
   DollarOutlined, ShoppingCartOutlined, BuildOutlined, TeamOutlined,
 } from '@ant-design/icons'
@@ -21,8 +24,8 @@ export default function ReportCenter() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <Spin size="large" className="flex justify-center mt-20" />
-  if (!data) return <div className="text-center mt-20 text-gray-500">{t('report.noData')}</div>
+  if (loading) return <ReportSkeleton />
+  if (!data) return <PageState variant="chart" description={t('report.noData')} />
 
   const { stats, charts } = data
 
@@ -65,33 +68,33 @@ export default function ReportCenter() {
       <PageTitle />
       <Row gutter={16} className="mb-6">
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('dashboard.salesTotal')} value={stats.salesTotal} prefix={<DollarOutlined />} suffix={t('common.suffixYuan')} /></Card>
+          <PageCard><Statistic title={t('dashboard.salesTotal')} value={stats.salesTotal} prefix={<DollarOutlined />} suffix={t('common.suffixYuan')} /></PageCard>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('report.purchaseTotal')} value={stats.purchaseTotal} prefix={<ShoppingCartOutlined />} suffix={t('common.suffixYuan')} /></Card>
+          <PageCard><Statistic title={t('report.purchaseTotal')} value={stats.purchaseTotal} prefix={<ShoppingCartOutlined />} suffix={t('common.suffixYuan')} /></PageCard>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('report.salesOrders')} value={stats.salesOrderCount} suffix={t('common.suffixOrder')} /></Card>
+          <PageCard><Statistic title={t('report.salesOrders')} value={stats.salesOrderCount} suffix={t('common.suffixOrder')} /></PageCard>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('dashboard.purchaseOrders')} value={stats.purchaseOrderCount} suffix={t('common.suffixOrder')} /></Card>
+          <PageCard><Statistic title={t('dashboard.purchaseOrders')} value={stats.purchaseOrderCount} suffix={t('common.suffixOrder')} /></PageCard>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('dashboard.inventoryQty')} value={stats.inventoryQuantity} prefix={<BuildOutlined />} /></Card>
+          <PageCard><Statistic title={t('dashboard.inventoryQty')} value={stats.inventoryQuantity} prefix={<BuildOutlined />} /></PageCard>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-          <Card><Statistic title={t('report.employeeCount')} value={stats.employeeCount} prefix={<TeamOutlined />} suffix={t('common.suffixPerson')} /></Card>
+          <PageCard><Statistic title={t('report.employeeCount')} value={stats.employeeCount} prefix={<TeamOutlined />} suffix={t('common.suffixPerson')} /></PageCard>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} lg={12}>
-          <Card><ReactECharts option={salesChartOption} style={{ height: 320 }} /></Card>
+          <PageCard><ReactECharts option={salesChartOption} style={{ height: 320 }} /></PageCard>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card><ReactECharts option={statusChartOption} style={{ height: 320 }} /></Card>
+          <PageCard><ReactECharts option={statusChartOption} style={{ height: 320 }} /></PageCard>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card><ReactECharts option={purchaseChartOption} style={{ height: 320 }} /></Card>
+          <PageCard><ReactECharts option={purchaseChartOption} style={{ height: 320 }} /></PageCard>
         </Col>
       </Row>
     </div>

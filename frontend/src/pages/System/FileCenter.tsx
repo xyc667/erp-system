@@ -3,6 +3,7 @@ import { Upload, Button, message } from 'antd'
 import { UploadOutlined, LinkOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import api from '../../services/api'
 import ResponsiveTable from '../../components/ResponsiveTable'
 
@@ -67,6 +68,7 @@ export default function FileCenter() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Upload
         customRequest={async ({ file, onSuccess, onError }) => {
           try {
@@ -87,6 +89,7 @@ export default function FileCenter() {
         <Button icon={<UploadOutlined />} style={{ marginBottom: 16 }}>{t('common.upload')}</Button>
       </Upload>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
+    </PageSection>
     </div>
   )
 }

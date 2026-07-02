@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Input, InputNumber, Select, message } from 'antd'
+import { Button, Form, Input, InputNumber, message, Modal, Select } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { productsService, Product, ProductCategory } from '../../services/products'
 import ResponsiveTable from '../../components/ResponsiveTable'
 
@@ -84,14 +86,15 @@ export default function ProductManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         setEditingId(null)
         form.resetFields()
         setModalOpen(true)
       }}>{t('inventory.addProduct')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={editingId ? t('inventory.editProduct') : t('inventory.addProduct')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      </PageSection>
+      <FormModal title={editingId ? t('inventory.editProduct') : t('inventory.addProduct')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={handleSubmit}>
           <Form.Item name="code" label={t('common.code')} rules={[{ required: true }]}><Input disabled={!!editingId} /></Form.Item>
           <Form.Item name="name" label={t('common.name')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="categoryId" label={t('common.category')}>
@@ -102,9 +105,7 @@ export default function ProductManagement() {
           <Form.Item name="unit" label={t('common.unit')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="price" label={t('common.referencePrice')}><InputNumber style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="safetyStock" label={t('common.safetyStock')}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Form, Select, InputNumber, Input, Button, message } from 'antd'
 import { SwapOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { inventoryTransferService } from '../../services/inventoryTransfer'
 import { productsService, Product } from '../../services/products'
 import { warehousesService, Warehouse } from '../../services/warehouses'
@@ -26,6 +27,7 @@ export default function StockTransfer() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <p className="text-gray-500 mb-4">{t('inventory.transferHint')}</p>
       <Form
         form={form}
@@ -73,6 +75,7 @@ export default function StockTransfer() {
           </Button>
         </Form.Item>
       </Form>
+    </PageSection>
     </div>
   )
 }

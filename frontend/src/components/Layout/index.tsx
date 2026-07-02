@@ -6,6 +6,9 @@ import AppSider from './Sider'
 import AppHeader from './Header'
 import BreadcrumbNav from '../BreadcrumbNav'
 import OfflineBanner from '../OfflineBanner'
+import PageAssistant from '../assistant/PageAssistant'
+import { NotificationsProvider } from '../../contexts/NotificationsContext'
+import { brand } from '../../theme/brand'
 
 const { Content } = Layout
 
@@ -20,6 +23,7 @@ export default function AppLayout({ children }: LayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
+    <NotificationsProvider>
     <Layout style={{ minHeight: '100vh' }}>
       {!isMobile && <AppSider />}
       <Layout>
@@ -50,7 +54,7 @@ export default function AppLayout({ children }: LayoutProps) {
           style={{
             padding: isMobile ? '12px' : '24px',
             margin: isMobile ? '8px' : '24px 16px',
-            background: '#f5f7fa',
+            background: `linear-gradient(180deg, ${brand.bgPage} 0%, ${brand.bgPageEnd} 100%)`,
             borderRadius: '8px',
             minHeight: 'calc(100vh - 140px)',
           }}
@@ -60,6 +64,8 @@ export default function AppLayout({ children }: LayoutProps) {
           {children}
         </Content>
       </Layout>
+      <PageAssistant />
     </Layout>
+    </NotificationsProvider>
   )
 }

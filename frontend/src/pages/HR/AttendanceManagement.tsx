@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, DatePicker, Input, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, DatePicker, Form, Input, message, Modal, Select, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { attendanceService, Attendance } from '../../services/attendance'
@@ -94,13 +96,14 @@ export default function AttendanceManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('hr.registerAttendance')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('hr.registerAttendanceModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('hr.registerAttendanceModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await attendanceService.create({
             employeeId: values.employeeId,
             date: values.date.format('YYYY-MM-DD'),
@@ -123,9 +126,7 @@ export default function AttendanceManagement() {
             </Select>
           </Form.Item>
           <Form.Item name="remark" label={t('inventory.remark')}><Input.TextArea /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

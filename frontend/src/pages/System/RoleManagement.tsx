@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import PageTitle from '../../components/PageTitle'
+import FormModal from '../../components/FormModal'
+import PageSection from '../../components/PageSection'
 import { Button, Modal, Form, Input, Checkbox, message, Divider } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -181,6 +183,7 @@ export default function RoleManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} onClick={handleAdd} style={{ marginBottom: 20 }}>
         {t('system.addRole')}
       </Button>
@@ -191,13 +194,15 @@ export default function RoleManagement() {
         loading={loading}
         pagination={{ pageSize: 10 }}
       />
-      <Modal
+      </PageSection>
+      <FormModal
         title={editingId ? t('system.editRole') : t('system.addRole')}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
-        footer={null}
+        form={form}
+        onFinish={handleSubmit}
+        okText={editingId ? t('common.save') : t('common.create')}
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
             name="name"
             label={t('common.roleName')}
@@ -208,16 +213,7 @@ export default function RoleManagement() {
           <Form.Item name="description" label={t('common.description')}>
             <Input.TextArea />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {editingId ? t('common.save') : t('common.create')}
-            </Button>
-            <Button onClick={() => setModalOpen(false)} className="ml-2">
-              {t('common.cancel')}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
       <Modal
         title={t('system.assignPermissions')}

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, Input, InputNumber, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, InputNumber, message, Modal, Select, Space } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { bomsService, Bom } from '../../services/boms'
@@ -62,6 +64,7 @@ export default function BomManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         form.setFieldsValue({ items: [{}] })
@@ -75,6 +78,7 @@ export default function BomManagement() {
         expandable={{
           expandedRowRender: (record) => (
             <ResponsiveTable
+              embedded
               size="small"
               pagination={false}
               rowKey="id"
@@ -89,8 +93,8 @@ export default function BomManagement() {
           ),
         }}
       />
-      <Modal title={t('production.createBomModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} width={720}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('production.createBomModal')} open={modalOpen} onCancel={() => setModalOpen(false)} width={720} form={form} onFinish={async (values) => {
           await bomsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -125,9 +129,7 @@ export default function BomManagement() {
               </>
             )}
           </Form.List>
-          <Form.Item className="mt-4"><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

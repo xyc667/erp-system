@@ -18,9 +18,55 @@ export interface DashboardStats {
   }
 }
 
+export interface BiFeedOrder {
+  id: string
+  orderNo: string
+  type: 'sales' | 'purchase'
+  partyName: string
+  totalAmount: number
+  status: string
+  createdAt: string
+}
+
+export interface BiFeedEvent {
+  id: string
+  kind: 'sales_order' | 'purchase_order' | 'lead_convert' | 'audit'
+  title: string
+  detail: string
+  status?: string
+  amount?: number
+  actor?: string
+  createdAt: string
+}
+
+export interface BiFeedMapPoint {
+  name: string
+  district: string | null
+  lng: number
+  lat: number
+  category: string | null
+}
+
+export interface BiFeedMapDistrict {
+  district: string
+  count: number
+  lng: number
+  lat: number
+}
+
+export interface BiFeed {
+  orders: BiFeedOrder[]
+  events: BiFeedEvent[]
+  map: {
+    districts: BiFeedMapDistrict[]
+    points: BiFeedMapPoint[]
+  }
+}
+
 export const reportService = {
   getOverview: () => api.get<DashboardStats>('/report/overview'),
   getDashboardStats: () => api.get<DashboardStats>('/dashboard/stats'),
+  getBiFeed: () => api.get<BiFeed>('/dashboard/feed'),
   getFinanceReport: () => api.get<FinanceReport>('/report/finance'),
 }
 

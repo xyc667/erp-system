@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, Input, Tag, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { serviceTicketsService, ServiceTicket } from '../../services/serviceTickets'
@@ -107,14 +109,16 @@ export default function ServiceTicketManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('sales.createTicket')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
 
-      <Modal title={t('sales.createTicketModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+
+      <FormModal title={t('sales.createTicketModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await serviceTicketsService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -145,12 +149,9 @@ export default function ServiceTicketManagement() {
             </Select>
           </Form.Item>
           <Form.Item name="description" label={t('sales.issueDescription')}><Input.TextArea rows={3} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.submit')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
 
-      <Modal title={t('sales.resolveTicketModal')} open={resolveOpen} onCancel={() => setResolveOpen(false)} footer={null}>
-        <Form form={resolveForm} layout="vertical" onFinish={async (values) => {
+      <FormModal title={t('sales.resolveTicketModal')} open={resolveOpen} onCancel={() => setResolveOpen(false)} form={resolveForm} onFinish={async (values) => {
           if (!resolveId) return
           await serviceTicketsService.resolve(resolveId, values.resolution)
           message.success(t('sales.resolveSuccess'))
@@ -158,9 +159,7 @@ export default function ServiceTicketManagement() {
           fetchData()
         }}>
           <Form.Item name="resolution" label={t('sales.resolution')}><Input.TextArea rows={3} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.confirm')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

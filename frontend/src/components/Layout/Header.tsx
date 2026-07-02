@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { Layout, Dropdown, Avatar, MenuProps, Badge, List, Button } from 'antd'
-import { UserOutlined, LogoutOutlined, SettingOutlined, BellOutlined } from '@ant-design/icons'
-import { useCallback, useEffect, useState } from 'react'
+import { UserOutlined, LogoutOutlined, SettingOutlined, BellOutlined, SmileOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useNavigate } from 'react-router-dom'
-import { notificationsService, Notification } from '../../services/notifications'
-import { useNotificationSocket } from '../../hooks/useNotificationSocket'
+import { notificationRoute } from '../../hooks/useNotifications'
+import { useNotificationsContext } from '../../contexts/NotificationsContext'
+import { showPageAssistant } from '../assistant/PageAssistant'
+import { isAssistantEnabled, setAssistantEnabled } from '../assistant/assistantStorage'
 import LanguageSwitcher from '../LanguageSwitcher'
 import RegionalSettings from '../RegionalSettings'
+import PersonalSettingsDrawer from '../PersonalSettingsDrawer'
+import { brand } from '../../theme/brand'
 
 const { Header } = Layout
 
@@ -19,30 +23,8 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
   const { t } = useTranslation()
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unread, setUnread] = useState(0)
-
-  const loadNotifications = useCallback(async () => {
-    try {
-      const [listRes, countRes] = await Promise.all([
-        notificationsService.getAll(),
-        notificationsService.getUnreadCount(),
-      ])
-      setNotifications(listRes.data)
-      setUnread(typeof countRes.data === 'number' ? countRes.data : 0)
-    } catch {
-      setNotifications([])
-      setUnread(0)
-    }
-  }, [])
-
-  useNotificationSocket(loadNotifications)
-
-  useEffect(() => {
-    loadNotifications()
-    const timer = setInterval(loadNotifications, 60_000)
-    return () => clearInterval(timer)
-  }, [loadNotifications])
+  const { notifications, unread, markRead, markAllRead } = useNotificationsContext()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -54,8 +36,7 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
       <div className="flex justify-between items-center px-2 py-1 border-b mb-2">
         <span className="font-medium">{t('app.notifications')}</span>
         <Button type="link" size="small" onClick={async () => {
-          await notificationsService.markAllRead()
-          loadNotifications()
+          await markAllRead()
         }}>{t('app.markAllRead')}</Button>
       </div>
       <List
@@ -67,12 +48,10 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
             className={item.read ? 'opacity-60' : ''}
             onClick={async () => {
               if (!item.read) {
-                await notificationsService.markRead(item.id)
-                loadNotifications()
+                await markRead(item.id)
               }
-              if (item.type.startsWith('lead.report')) {
-                navigate('/sales/leads/reports')
-              }
+              const route = notificationRoute(item.type)
+              if (route) navigate(route)
             }}
           >
             <List.Item.Meta
@@ -86,7 +65,25 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
   )
 
   const items: MenuProps['items'] = [
-    { key: '1', icon: <SettingOutlined />, label: t('app.settings') },
+    {
+      key: 'assistant',
+      icon: <SmileOutlined />,
+      label: isAssistantEnabled() ? t('assistant.hide') : t('assistant.show'),
+      onClick: () => {
+        if (isAssistantEnabled()) {
+          setAssistantEnabled(false)
+          window.dispatchEvent(new Event('erp-assistant-hide'))
+        } else {
+          showPageAssistant()
+        }
+      },
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: t('app.settings'),
+      onClick: () => setSettingsOpen(true),
+    },
     { type: 'divider' },
     { key: '3', icon: <LogoutOutlined />, label: t('app.logout'), onClick: handleLogout },
   ]
@@ -95,11 +92,13 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
     <Header
       style={{
         background: '#fff',
-        padding: '0 12px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        padding: '0 16px',
+        boxShadow: brand.cardShadow,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        borderBottom: '1px solid #f1f5f9',
+        zIndex: 10,
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -128,6 +127,7 @@ export default function AppHeader({ mobileMenu }: AppHeaderProps) {
           </div>
         </Dropdown>
       </div>
+      <PersonalSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </Header>
   )
 }

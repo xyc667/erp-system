@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Card, Button, Modal, Typography, message, Space } from 'antd'
+import PageSection from '../../components/PageSection'
+import PageCard from '../../components/PageCard'
+import { Button, Modal, Typography, message, Space } from 'antd'
 import { ApiOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { integrationService } from '../../services/integration'
@@ -58,12 +60,13 @@ export default function IntegrationCenter() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Paragraph type="secondary">
         {t('system.integrationHint')}
       </Paragraph>
       <Space direction="vertical" size="middle" className="w-full">
         {endpoints.map((ep) => (
-          <Card key={ep.key} title={<><ApiOutlined className="mr-2" />{ep.title}</>}>
+          <PageCard key={ep.key} title={<><ApiOutlined className="mr-2" />{ep.title}</>}>
             <Paragraph><Text code>{ep.path}</Text></Paragraph>
             <Paragraph type="secondary">{ep.desc}</Paragraph>
             <Button
@@ -73,9 +76,10 @@ export default function IntegrationCenter() {
             >
               {t('system.previewExport')}
             </Button>
-          </Card>
+          </PageCard>
         ))}
       </Space>
+      </PageSection>
       <Modal
         title={preview?.title}
         open={!!preview}

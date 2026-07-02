@@ -1,3 +1,4 @@
+import { useMemo, useState, useEffect } from 'react'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -17,20 +18,23 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/useAuthStore'
 import { ROUTE_I18N_KEYS } from '../../config/routeI18n'
+import { brand } from '../../theme/brand'
+import SiderLogo from './SiderLogo'
 
 const { Sider } = Layout
 
 type MenuItem = Required<MenuProps>['items'][number]
-type MenuItemWithPerm = MenuItem & { permissions?: string[]; children?: MenuItemWithPerm[] }
+type MenuItemWithPerm = MenuItem & {
+  permissions?: string[]
+  children?: MenuItemWithPerm[]
+}
 
 function routeLabel(t: (k: string) => string, path: string) {
   return t(ROUTE_I18N_KEYS[path])
 }
 
-function buildMenuItems(t: (k: string) => string): MenuItemWithPerm[] {
+function businessModules(t: (k: string) => string): MenuItemWithPerm[] {
   return [
-    { key: '/dashboard', icon: <DashboardOutlined />, label: t('menu.dashboard') },
-    { key: '/bi-screen', icon: <FundProjectionScreenOutlined />, label: t('menu.biScreen') },
     {
       key: 'finance',
       icon: <CreditCardOutlined />,
@@ -122,32 +126,56 @@ function buildMenuItems(t: (k: string) => string): MenuItemWithPerm[] {
       label: t('menu.project'),
       permissions: ['project:manage'],
     },
+  ]
+}
+
+function buildMenuItems(t: (k: string) => string): MenuItemWithPerm[] {
+  return [
+    { key: '/dashboard', icon: <DashboardOutlined />, label: t('menu.dashboard') },
+    { key: '/bi-screen', icon: <FundProjectionScreenOutlined />, label: t('menu.biScreen') },
     {
-      key: '/report',
-      icon: <FileTextOutlined />,
-      label: t('menu.report'),
-      permissions: ['report:center'],
+      type: 'group',
+      label: t('menu.group.business'),
+      children: businessModules(t),
     },
     {
-      key: '/report/intelligence',
-      icon: <FundProjectionScreenOutlined />,
-      label: t('routes.intelligence'),
-      permissions: ['report:center', 'inventory:alert', 'finance:report'],
-    },
-    {
-      key: 'system',
-      icon: <SettingOutlined />,
-      label: t('menu.system'),
-      permissions: ['user:manage', 'user:view', 'role:manage', 'system:config', 'integration:sync', 'system:audit', 'system:tenant', 'file:manage', 'lead:import'],
+      type: 'group',
+      label: t('menu.group.analytics'),
       children: [
-        { key: '/system/user', label: routeLabel(t, '/system/user'), permissions: ['user:manage', 'user:view'] },
-        { key: '/system/role', label: routeLabel(t, '/system/role'), permissions: ['role:manage'] },
-        { key: '/system/config', label: routeLabel(t, '/system/config'), permissions: ['system:config'] },
-        { key: '/system/files', label: routeLabel(t, '/system/files'), permissions: ['file:manage', 'system:config'] },
-        { key: '/system/leads/import', label: routeLabel(t, '/system/leads/import'), permissions: ['lead:import'] },
-        { key: '/system/integration', label: routeLabel(t, '/system/integration'), permissions: ['integration:sync'] },
-        { key: '/system/audit', label: routeLabel(t, '/system/audit'), permissions: ['system:audit'] },
-        { key: '/system/tenant', label: routeLabel(t, '/system/tenant'), permissions: ['system:tenant'] },
+        {
+          key: '/report',
+          icon: <FileTextOutlined />,
+          label: t('menu.report'),
+          permissions: ['report:center'],
+        },
+        {
+          key: '/report/intelligence',
+          icon: <FundProjectionScreenOutlined />,
+          label: t('routes.intelligence'),
+          permissions: ['report:center', 'inventory:alert', 'finance:report'],
+        },
+      ],
+    },
+    {
+      type: 'group',
+      label: t('menu.group.system'),
+      children: [
+        {
+          key: 'system',
+          icon: <SettingOutlined />,
+          label: t('menu.system'),
+          permissions: ['user:manage', 'user:view', 'role:manage', 'system:config', 'integration:sync', 'system:audit', 'system:tenant', 'file:manage', 'lead:import'],
+          children: [
+            { key: '/system/user', label: routeLabel(t, '/system/user'), permissions: ['user:manage', 'user:view'] },
+            { key: '/system/role', label: routeLabel(t, '/system/role'), permissions: ['role:manage'] },
+            { key: '/system/config', label: routeLabel(t, '/system/config'), permissions: ['system:config'] },
+            { key: '/system/files', label: routeLabel(t, '/system/files'), permissions: ['file:manage', 'system:config'] },
+            { key: '/system/leads/import', label: routeLabel(t, '/system/leads/import'), permissions: ['lead:import'] },
+            { key: '/system/integration', label: routeLabel(t, '/system/integration'), permissions: ['integration:sync'] },
+            { key: '/system/audit', label: routeLabel(t, '/system/audit'), permissions: ['system:audit'] },
+            { key: '/system/tenant', label: routeLabel(t, '/system/tenant'), permissions: ['system:tenant'] },
+          ],
+        },
       ],
     },
   ]
@@ -159,12 +187,20 @@ function filterMenuItems(
 ): MenuItem[] {
   return items
     .map((item) => {
+      if (!item) return null
+      if ('type' in item && item.type === 'group') {
+        const children = item.children
+          ? filterMenuItems(item.children as MenuItemWithPerm[], hasPermission)
+          : []
+        if (children.length === 0) return null
+        return { ...item, children }
+      }
+
       const children = item.children
         ? filterMenuItems(item.children, hasPermission)
         : undefined
 
       if (children && children.length === 0) return null
-
       if (item.permissions && !hasPermission(...item.permissions)) return null
 
       const { permissions: _, children: __, ...menuItem } = item
@@ -174,6 +210,32 @@ function filterMenuItems(
       return menuItem
     })
     .filter(Boolean) as MenuItem[]
+}
+
+function resolveOpenKeys(pathname: string): string[] {
+  if (pathname.startsWith('/system')) return ['system']
+  if (pathname.startsWith('/finance')) return ['finance']
+  if (pathname.startsWith('/procurement')) return ['procurement']
+  if (pathname.startsWith('/sales')) return ['sales']
+  if (pathname.startsWith('/production')) return ['production']
+  if (pathname.startsWith('/inventory')) return ['inventory']
+  if (pathname.startsWith('/hr')) return ['hr']
+  return []
+}
+
+function resolveSelectedKey(pathname: string): string {
+  const flatKeys = [
+    '/dashboard', '/bi-screen', '/finance/gl', '/finance/ar', '/finance/ap', '/finance/assets', '/finance/report', '/finance/budget',
+    '/procurement/vendor', '/procurement/request', '/procurement/order', '/procurement/receive',
+    '/sales/customer', '/sales/quote', '/sales/order', '/sales/delivery', '/sales/service',
+    '/sales/leads/pool', '/sales/leads/mine', '/sales/leads/stats', '/sales/leads/reports',
+    '/production/bom', '/production/plan', '/production/work-order', '/production/quality',
+    '/inventory/stock', '/inventory/inout', '/inventory/alert', '/inventory/stocktake', '/inventory/transfer', '/inventory/trace', '/inventory/product', '/inventory/warehouse',
+    '/hr/employee', '/hr/department', '/hr/position', '/hr/attendance', '/hr/salary', '/hr/performance',
+    '/project', '/report', '/report/intelligence',
+    '/system/user', '/system/role', '/system/config', '/system/files', '/system/leads/import', '/system/integration', '/system/audit', '/system/tenant',
+  ]
+  return flatKeys.find((key) => pathname.startsWith(key)) || '/dashboard'
 }
 
 export default function AppSider({
@@ -188,7 +250,19 @@ export default function AppSider({
   const location = useLocation()
   const hasPermission = useAuthStore((state) => state.hasPermission)
 
-  const menuItems = filterMenuItems(buildMenuItems(t), hasPermission)
+  const menuItems = useMemo(
+    () => filterMenuItems(buildMenuItems(t), hasPermission),
+    [t, hasPermission],
+  )
+
+  const [openKeys, setOpenKeys] = useState<string[]>(() => resolveOpenKeys(location.pathname))
+
+  useEffect(() => {
+    setOpenKeys((prev) => {
+      const next = resolveOpenKeys(location.pathname)
+      return next.length ? [...new Set([...prev, ...next])] : prev
+    })
+  }, [location.pathname])
 
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key.startsWith('/')) {
@@ -197,50 +271,24 @@ export default function AppSider({
     }
   }
 
-  const getOpenKeys = () => {
-    if (location.pathname.startsWith('/system')) return ['system']
-    if (location.pathname.startsWith('/finance')) return ['finance']
-    if (location.pathname.startsWith('/procurement')) return ['procurement']
-    if (location.pathname.startsWith('/sales')) return ['sales']
-    if (location.pathname.startsWith('/production')) return ['production']
-    if (location.pathname.startsWith('/inventory')) return ['inventory']
-    if (location.pathname.startsWith('/hr')) return ['hr']
-    return []
-  }
-
-  const getSelectedKey = () => {
-    const flatKeys = [
-      '/dashboard', '/bi-screen', '/finance/gl', '/finance/ar', '/finance/ap', '/finance/assets', '/finance/report', '/finance/budget',
-      '/procurement/vendor', '/procurement/request', '/procurement/order', '/procurement/receive',
-      '/sales/customer', '/sales/quote', '/sales/order', '/sales/delivery', '/sales/service',
-      '/sales/leads/pool', '/sales/leads/mine', '/sales/leads/stats', '/sales/leads/reports',
-      '/production/bom', '/production/plan', '/production/work-order', '/production/quality',
-      '/inventory/stock', '/inventory/inout', '/inventory/alert', '/inventory/stocktake', '/inventory/transfer', '/inventory/trace', '/inventory/product', '/inventory/warehouse',
-      '/hr/employee', '/hr/department', '/hr/position', '/hr/attendance', '/hr/salary', '/hr/performance',
-      '/project', '/report', '/report/intelligence',
-      '/system/user', '/system/role', '/system/config', '/system/files', '/system/integration', '/system/audit', '/system/tenant',
-    ]
-    return flatKeys.find((key) => location.pathname.startsWith(key)) || '/dashboard'
-  }
-
   return (
     <Sider
       theme="dark"
       width={250}
       collapsed={inlineCollapsed}
-      style={{ background: '#1a365d', minHeight: inlineCollapsed ? undefined : '100vh' }}
+      style={{ background: brand.primary, minHeight: inlineCollapsed ? undefined : '100vh' }}
     >
-      <div className="h-16 flex items-center justify-center text-white text-xl font-bold">
-        {t('app.brand')}
-      </div>
+      <SiderLogo collapsed={inlineCollapsed} />
       <Menu
+        className="app-sider-menu"
         mode="inline"
         theme="dark"
-        selectedKeys={[getSelectedKey()]}
-        defaultOpenKeys={getOpenKeys()}
+        selectedKeys={[resolveSelectedKey(location.pathname)]}
+        openKeys={inlineCollapsed ? [] : openKeys}
+        onOpenChange={setOpenKeys}
         items={menuItems}
         onClick={handleMenuClick}
-        style={{ background: '#1a365d', borderRight: 'none' }}
+        style={{ background: brand.primary, borderRight: 'none', padding: '8px 0 16px' }}
       />
     </Sider>
   )

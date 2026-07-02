@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PageTitle from '../../components/PageTitle'
-import { Button, Modal, Form, Select, Input, InputNumber, Tag, message } from 'antd'
+import PageSection from '../../components/PageSection'
+import { Button, Form, Input, InputNumber, message, Modal, Select, Tag } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, DeleteOutlined, DollarOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { salaryService, SalaryRecord } from '../../services/salary'
@@ -77,13 +79,14 @@ export default function SalaryManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         form.resetFields()
         setModalOpen(true)
       }}>{t('hr.createSalary')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={t('hr.createSalaryModal')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={async (values) => {
+      </PageSection>
+      <FormModal title={t('hr.createSalaryModal')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={async (values) => {
           await salaryService.create(values)
           message.success(t('common.createSuccess'))
           setModalOpen(false)
@@ -100,9 +103,7 @@ export default function SalaryManagement() {
           </Form.Item>
           <Form.Item name="bonus" label={t('common.bonus')}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
           <Form.Item name="deduction" label={t('common.deduction')}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.create')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }

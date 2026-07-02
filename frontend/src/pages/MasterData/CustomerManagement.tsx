@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Button, Modal, Form, Input, InputNumber, message } from 'antd'
+import { Button, Form, Input, InputNumber, message, Modal } from 'antd'
+import FormModal from '../../components/FormModal'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '../../components/PageTitle'
+import PageSection from '../../components/PageSection'
 import { customersService, Customer } from '../../services/customers'
 import ResponsiveTable from '../../components/ResponsiveTable'
 
@@ -78,22 +80,21 @@ export default function CustomerManagement() {
   return (
     <div>
       <PageTitle />
+      <PageSection>
       <Button icon={<PlusOutlined />} style={{ marginBottom: 20 }} onClick={() => {
         setEditingId(null)
         form.resetFields()
         setModalOpen(true)
       }}>{t('sales.addCustomer')}</Button>
       <ResponsiveTable columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
-      <Modal title={editingId ? t('sales.editCustomer') : t('sales.addCustomer')} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      </PageSection>
+      <FormModal title={editingId ? t('sales.editCustomer') : t('sales.addCustomer')} open={modalOpen} onCancel={() => setModalOpen(false)} form={form} onFinish={handleSubmit}>
           <Form.Item name="code" label={t('common.code')} rules={[{ required: true }]}><Input disabled={!!editingId} /></Form.Item>
           <Form.Item name="name" label={t('common.name')} rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="contactName" label={t('common.contact')}><Input /></Form.Item>
           <Form.Item name="contactPhone" label={t('common.phone')}><Input /></Form.Item>
           <Form.Item name="creditLimit" label={t('common.creditLimit')}><InputNumber style={{ width: '100%' }} /></Form.Item>
-          <Form.Item><Button type="primary" htmlType="submit">{t('common.save')}</Button></Form.Item>
-        </Form>
-      </Modal>
+      </FormModal>
     </div>
   )
 }
